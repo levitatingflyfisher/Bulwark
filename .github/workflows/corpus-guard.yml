@@ -1,0 +1,18 @@
+# Structural privacy guard: the private health corpus these habits were distilled
+# from must NEVER be tracked in this public repo. This fails the build if any
+# corpus file is committed — a tripwire behind the .gitignore quarantine and the
+# content-validation denylist (ADR-0004).
+name: corpus-guard
+on: [push, pull_request]
+jobs:
+  no-corpus-in-tree:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fail if any corpus source file is tracked
+        run: |
+          hits=$(git ls-files | grep -iE 'health-wins|olympian-birth|vbac-large-family|human-maintenance-algorithm|integrated-daily-protocol|new-parent-survival-stack|bulwark-prd|final-red-team-errata|healthConvoStarters' || true)
+          if [ -n "$hits" ]; then
+            echo "CORPUS LEAK — these private source files are tracked:"; echo "$hits"; exit 1
+          fi
+          echo "clean — no corpus source files tracked"

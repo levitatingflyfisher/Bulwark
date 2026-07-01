@@ -1,0 +1,17 @@
+{
+  "newParent": {
+    "title": "New parent survival stack",
+    "description": "A pre-configured bundle for parents of a newborn running on fragmented, involuntary sleep. It targets the downstream HPA-axis disruption (blunted morning cortisol, elevated evening cortisol, depleted brain energy reserves) as a bridge strategy for roughly 6-18 months, until your baby's sleep consolidates — it is explicitly not a general optimization stack, and it does not replace sleep, food, sunlight, movement, or asking for help.",
+    "interventionIds": [
+      "creatine",
+      "vitamin-d3-k2",
+      "omega-3",
+      "phosphatidylserine",
+      "magnesium-glycinate",
+      "glycine-before-bed",
+      "caffeine-cutoff",
+      "morning-sunlight"
+    ],
+    "bundleNotes": "Morning stack (creatine, vitamin D3+K2, omega-3) goes with breakfast — daily, no loading phase needed for creatine, take with a fat-containing meal for the fat-soluble D3. Phosphatidylserine goes with dinner, not at bedtime, and starts at 200mg — only increase to 400mg after about two weeks if cortisol symptoms persist (can't fall asleep during available windows, a wired-but-tired feeling at night). Plan dinner early enough to finish 2-3 hours before bed so the PS-with-dinner timing and the pre-sleep wind-down don't collide; if a late dinner is unavoidable, take the PS with the last substantial meal of the day (even lunch) and keep dinner light. PS and the bedtime magnesium/glycine stack work through unrelated mechanisms (HPA-axis/cortisol modulation vs. core-temperature-lowering vasodilation) and do not interact — taking all three across the day is complementary, not redundant. Magnesium glycinate and glycine go together 30-60 minutes before whatever sleep window is available. If you don't consume caffeine at all, the caffeine-cutoff item is already handled for you — treat it as done. If you do drink caffeinated soda, coffee, or energy drinks, the noon cutoff is the least negotiable item in this bundle: a mid-afternoon caffeine hit trades tonight's sleep quality for tomorrow's fatigue, compounding the exact problem this stack exists to manage. Morning sunlight (10 min direct sun / 20-30 min overcast, outside, not through glass) is the circadian anchor holding this whole bundle together while nighttime wakings scramble the body's clock — taking your baby outside for this doubles as tolerable movement for you both. A breastfeeding variant of this bundle exists that drops creatine (insufficient human lactation-safety data, though naturally present in milk) until weaning; everything else in the stack is considered compatible with breastfeeding at the doses above."
+  }
+}
