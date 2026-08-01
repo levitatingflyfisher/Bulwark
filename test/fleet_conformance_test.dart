@@ -5,7 +5,13 @@ void main() => runFleetConformance(const FleetAppConfig(
       // Bundles its own type, so nothing falls back to a web font — a
       // character the bundled families cannot draw is a box on a
       // real phone. C7 sweeps lib/ for any.
-      checks: FleetAppConfig.withBundledFonts,
+      // C8: a bare IconButton.filled paints its glyph in ohStyle's ambient
+      // iconTheme color, which is the same color as its own fill — a
+      // button that's there but unreadable. OhIconButton pins it right.
+      checks: {
+        ...FleetAppConfig.withBundledFonts,
+        FleetCheck.c8IconButtons,
+      },
       // Tier-T (zero visual change): only the Material TextTheme ladder comes
       // from openhearth_design; the basalt/mortar/lichen identity stays
       // app-local. None of those hex values coincide with canonical tokens,
