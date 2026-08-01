@@ -1,0 +1,14 @@
+A wall between you and entropy. The goal is not perfection — it is a floor that doesn't collapse.
+
+Bulwark is a local-first health-habit app built around graduated habits: you add a stone, the wall holds a little better. Pacing is advisory, never blocking — the app will suggest, and then get out of the way.
+
+• Around 89 interventions, each tagged with the strength of evidence behind it
+• A daily check-in that takes seconds
+• The drystone Wall — your habits, rendered as stones that stack
+• Graduated habits: start where you are, not where a plan says you should be
+• Encrypted backup with a 12-word recovery phrase
+
+No ads. No accounts. No analytics. The APK asks for no network permission at all, so it cannot phone home even if it wanted to.
+
+Free and open source, MIT licensed.
+Source: https://github.com/levitatingflyfisher/Bulwark

@@ -288,9 +288,11 @@ class _FacetSheetState extends State<_FacetSheet> {
   ];
   static const _timeOptions = [
     (null, 'Any'),
-    (5, '≤ 5 min'),
-    (10, '≤ 10 min'),
-    (20, '≤ 20 min'),
+    // 'Up to' rather than the maths symbol: neither bundled font has
+    // U+2264, so it drew as a box. Same meaning, in letters we ship.
+    (5, 'Up to 5 min'),
+    (10, 'Up to 10 min'),
+    (20, 'Up to 20 min'),
   ];
 
   @override
