@@ -78,7 +78,8 @@ checkable, enforced in tests.
 4. **A wall, not a streak.** There is no daily-streak computation anywhere in
    the codebase. Adherence is aggregated *weekly* only, a `forgot` is tracked
    separately from a `skipped` (so a weak trigger can be told apart from a
-   deliberate pass), and a graduated habit's stone weathers on two
+   deliberate pass, and a run of forgets is answered with an offer to move
+   the habit to another moment), and a graduated habit's stone weathers on two
    consecutive shaky weekly pulses — it never disappears. Copy stays
    matter-of-fact; clay (never red) is the only "attention" color in the
    palette.
@@ -89,9 +90,11 @@ checkable, enforced in tests.
    content was distilled from lives outside version control entirely and is
    never meant to enter git history. See
    [ADR-0004](docs/adr/0004-de-personalization-law.md).
-6. **Not medical advice, said out loud.** A disclaimer is acknowledged once
-   during onboarding, repeated as a footer line on every intervention card
-   and the Home check-in bar, and stated in full on the About screen.
+6. **Not medical advice, said out loud.** A disclaimer stands on the first
+   onboarding screen (as text to read, not a box to tick: a tick nobody can
+   skip is a ritual, not consent), is repeated as a footer line on every
+   intervention card and the Home check-in bar, and is stated in full on the
+   About screen.
 7. **FLOSS / open by default.** MIT-licensed. The code is a recipe worth
    sharing.
 8. **Genuine craft.** Clean Architecture on Flutter (domain / data /
@@ -107,11 +110,12 @@ line of this code and every comment in it was written by an AI assistant;
 treat them as **an accurate record of what currently exists, offered with
 gratitude and a grain of salt** — not as a specification, and not as
 guaranteed-correct. Verify a claim (read the code, run the test) before you
-rely on it. As of v0.1.0, 227 tests, `flutter analyze` clean:
+rely on it. As of the September 2026 fleet rollout, 427 tests in 55 files,
+`flutter analyze` clean:
 
 **Real, tested, load-bearing:**
-- The full core loop: onboard (disclaimer → day map → goal/pace → starter
-  pack) → the starter pack goes active → daily check-in → the promotion gate
+- The full core loop: onboard (welcome and disclaimer → day map →
+  goal/pace → starter pack) → the starter pack goes active → daily check-in → the promotion gate
   advises on taking on another → graduation is suggested and confirmed → the
   habit becomes a stone on the wall.
 - The **89-item content library** (88 base items plus `nap-when-baby-naps`,
@@ -147,9 +151,10 @@ rely on it. As of v0.1.0, 227 tests, `flutter analyze` clean:
   as the rest of the OpenHearth fleet). The backup *does* restore:
   destructive-replace inside one transaction, behind an explicit "this
   replaces everything" confirmation. Plus **erase-all-data** (wipes every
-  user table in one transaction, returns to onboarding).
-- Fully offline on Android and web; bundled fonts (Lora/Nunito), no
-  `google_fonts` egress.
+  user table in one transaction, returns to onboarding; with backup set up
+  it first vaults a verified safety copy, and erases nothing if it can't).
+- Fully offline on Android and web; bundled fonts (Lora/Nunito, from the
+  shared `openhearth_design` package), no `google_fonts` egress.
 
 **Deferred — documented, not shipped:**
 - **Health-data integration** (Apple Health / Google Fit) — no reads or

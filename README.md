@@ -28,7 +28,11 @@ clinician. See the disclaimer in onboarding and on every intervention card.
   meals), asks your goal and your pace, and hands you 1–3 free, low-friction
   habits picked to fit both.
 - **A 30-second check-in.** One row per active habit — *did it / skipped /
-  forgot* — plus a weekly solid/shaky pulse once a habit has graduated.
+  forgot* — plus a weekly solid/shaky pulse once a habit has graduated. Each
+  answer is saved as you tap it, and a run of *forgot* offers to hang that
+  habit off a different moment.
+- **Nothing is one-way.** Activating, queueing, setting a habit aside,
+  setting a stone and repointing all offer Undo, with no timer.
 - **An advisory pacing engine, never a blocker.** A promotion gate can advise
   you to wait before taking on another habit; every verdict, kind or
   cautioning, ends in an "add anyway" button. Forgiveness over prevention.
@@ -51,20 +55,27 @@ clinician. See the disclaimer in onboarding and on every intervention card.
 
 ## Quickstart (development)
 
-Bulwark's encrypted backup is built on two shared packages consumed by
-**sibling path dependency** (`../packages/...`), the same pattern as
-`eloEngine`. Clone them next to Bulwark so the paths resolve:
+Bulwark is built on four shared packages consumed by **sibling path
+dependency**, the same pattern as `eloEngine`: the encrypted backup
+(`sanctuary_auth_core`, `sanctuary_backup_ui`), the design package with the
+fonts, type ladder and shared widgets (`ohStyle/openhearth_design`), and the
+fleet conformance tests (`oh_fleet_conformance`, dev only). Clone them next to
+Bulwark so the paths resolve:
 
 ```
+ohStyle/                   # github: levitatingflyfisher/ohStyle
 packages/
   sanctuary_auth_core/     # github: levitatingflyfisher/sanctuaryAuthCore
   sanctuary_backup_ui/     # github: levitatingflyfisher/sanctuaryBackupUi
+  oh_fleet_conformance/    # github: levitatingflyfisher/ohFleetConformance
 Bulwark/                   # this repo
 ```
 
 ```bash
+git clone https://github.com/levitatingflyfisher/ohStyle ohStyle
 git clone https://github.com/levitatingflyfisher/sanctuaryAuthCore packages/sanctuary_auth_core
 git clone https://github.com/levitatingflyfisher/sanctuaryBackupUi packages/sanctuary_backup_ui
+git clone https://github.com/levitatingflyfisher/ohFleetConformance packages/oh_fleet_conformance
 git clone git@github.com:levitatingflyfisher/Bulwark.git
 cd Bulwark
 flutter pub get

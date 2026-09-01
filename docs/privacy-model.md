@@ -29,7 +29,7 @@ The only way any data moves off the device is one *you* explicitly trigger:
   choice, not a Bulwark backend (see
   [everyday-tasks.md](how-to/everyday-tasks.md#export-your-data)). This copy
   is **unencrypted** — anyone who gets the file can read it.
-- **Encrypted backup → system share sheet.** Settings → "Encrypted Backup"
+- **Encrypted backup → system share sheet.** Settings → "Backup"
   does the same thing but the file (`.ohbk`) is ChaCha20-Poly1305-encrypted
   under a key derived from a 12-word recovery phrase generated and shown to
   you once, on-device — Bulwark never transmits it anywhere (see
@@ -71,9 +71,10 @@ These claims are meant to be checkable, not trusted:
    inside the app bundle (`pubspec.yaml`'s `flutter.assets`); it's loaded via
    `rootBundle`, which reads packaged assets, not the network. There is no
    remote-config or content-update mechanism.
-4. **Fonts are bundled, not fetched.** Lora and Nunito ship in
-   `assets/fonts/` and are declared in `pubspec.yaml`, so even the web build
-   makes no runtime request to a font CDN.
+4. **Fonts are bundled, not fetched.** Lora and Nunito ship inside the app
+   as `openhearth_design`'s package fonts (the shared design package, a
+   path dependency), so even the web build makes no runtime request to a
+   font CDN. `test/shared/theme/offline_fonts_test.dart` checks they resolve.
 5. **Airplane mode.** Turn off all connectivity; every feature still works,
    because offline *is* the mode.
 

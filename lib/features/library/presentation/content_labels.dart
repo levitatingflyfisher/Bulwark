@@ -59,7 +59,7 @@ String shopWhereLabel(ShopWhere where) => switch (where) {
 /// card — so the tag informs rather than just labels.
 String evidenceGloss(Evidence evidence) => switch (evidence) {
       Evidence.rct =>
-        'Tested in randomized controlled trials — the most direct kind of '
+        'Tested in randomized controlled trials, the most direct kind of '
             'human evidence.',
       Evidence.observational =>
         'Backed by observational studies that follow outcomes over time, but '

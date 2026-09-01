@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:openhearth_design/openhearth_design.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sanctuary_backup_ui/sanctuary_backup_ui.dart';
 
@@ -12,9 +13,9 @@ import 'package:bulwark/features/settings/presentation/settings_actions.dart';
 import 'package:bulwark/features/notifications/notification_providers.dart';
 import 'package:bulwark/core/providers/core_providers.dart';
 import 'package:bulwark/shared/extensions/datetime_ext.dart';
-import 'package:bulwark/shared/theme/app_colors.dart';
+import 'package:bulwark/shared/theme/app_palette.dart';
 import 'package:bulwark/shared/theme/app_spacing.dart';
-import 'package:bulwark/shared/widgets/confirm_dialog.dart';
+import 'package:bulwark/shared/widgets/theme_toggle.dart';
 
 /// Settings: adjust the day-map times, pace, evidence bar, the reminder
 /// switches, and reach About / Export / Erase. Edits autosave and re-plan
@@ -40,7 +41,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   late bool _newParent;
 
   static int _mins(TimeOfDay t) => t.hour * 60 + t.minute;
-  static TimeOfDay _tod(int m) => TimeOfDay(hour: (m ~/ 60) % 24, minute: m % 60);
+  static TimeOfDay _tod(int m) =>
+      TimeOfDay(hour: (m ~/ 60) % 24, minute: m % 60);
   static TimeOfDay? _todOrNull(int? m) => m == null ? null : _tod(m);
 
   void _seed(Profile p) {
@@ -121,25 +123,56 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         content: export.toPrettyJson(),
         fileName: exportFileName(DateTime.now()),
       );
-    } catch (e) {
+    } catch (e, st) {
+      debugPrint('Export failed: $e\n$st');
       if (!mounted) return;
-      final msg =
-          e is UnsupportedError ? (e.message ?? '$e') : 'Could not export.';
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text("Couldn’t export. ${ohFriendlyErrorMessage(e)}")));
     }
   }
 
   Future<void> _erase() async {
-    final confirmed = await showConfirmDialog(
+    // With recovery words a verified safety copy goes into Previous backups
+    // first, so the dialog must not claim there is no way back; without
+    // them, it must say so. Read fresh at the moment the dialog opens.
+    bool hasWords;
+    try {
+      hasWords = (await ref.read(backupSetupStatusProvider.future)).hasWords;
+    } on Object {
+      hasWords = false;
+    }
+    if (!mounted) return;
+    // The one confirmed act in the app: erase is a deliberate tile, but it
+    // takes everything at once. Clay with an icon and a word, never red
+    // (Bulwark's palette law); the buttons answer the question asked.
+    final confirmed = await showOhConfirm(
       context,
       title: 'Erase all data?',
-      message: 'This clears every habit, check-in, and setting on this device. '
-          "Your data is only here, so this can't be undone.",
+      message: hasWords
+          ? 'This clears every habit, check-in, and setting on this device. '
+              'A safety copy goes into Previous backups first, so restoring '
+              'it brings everything back.'
+          : 'This clears every habit, check-in, and setting on this device. '
+              "Backup isn’t set up, so there is no copy to restore.",
       confirmLabel: 'Erase everything',
-      confirmColor: AppColors.clay,
+      cancelLabel: 'Keep my data',
+      destructive: true,
+      confirmColor: BulwarkPalette.of(context).clay,
     );
-    if (!confirmed) return;
-    await eraseAllData(ref);
+    if (!confirmed || !mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final outcome = await eraseAfterSnapshot(
+      snapshot: () =>
+          ref.read(backupControllerProvider.notifier).snapshotBeforeWipe(),
+      wipe: () => eraseAllData(ref),
+      promisedCopy: hasWords,
+    );
+    if (outcome == EraseOutcome.keptBecauseSnapshotFailed) {
+      messenger.showSnackBar(const SnackBar(
+          content: Text('Couldn’t save a safety copy first, so nothing was '
+              'erased. Try again, or export your data first.')));
+      return;
+    }
     if (mounted) context.go('/onboarding');
   }
 
@@ -148,31 +181,35 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final profileAsync = ref.watch(profileProvider);
     final prefs = ref.watch(userPrefsProvider).valueOrNull;
     final remindersOn = prefs?.remindersEnabled ?? false;
-    final darkOn = prefs?.isDarkMode ?? false;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
-      body: profileAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            child: Text('Could not load settings.\n$e',
-                textAlign: TextAlign.center),
+      appBar: AppBar(
+        title: const Text('Settings'),
+        actions: const [ThemeToggle()],
+      ),
+      body: OhPage(
+        padding: EdgeInsets.zero,
+        child: profileAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, st) => OhErrorState.fromError(
+            e,
+            stackTrace: st,
+            title: "Couldn’t load your settings",
+            onRetry: () => ref.invalidate(profileProvider),
           ),
+          data: (profile) {
+            if (profile == null) {
+              return const Center(child: Text('No profile yet.'));
+            }
+            if (!_seeded) _seed(profile);
+            return _form(remindersOn: remindersOn);
+          },
         ),
-        data: (profile) {
-          if (profile == null) {
-            return const Center(child: Text('No profile yet.'));
-          }
-          if (!_seeded) _seed(profile);
-          return _form(remindersOn: remindersOn, darkOn: darkOn);
-        },
       ),
     );
   }
 
-  Widget _form({required bool remindersOn, required bool darkOn}) {
+  Widget _form({required bool remindersOn}) {
     return ListView(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
       children: [
@@ -215,7 +252,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             await _persist();
           },
         ),
-
         const _SectionHeader('Reminders'),
         SwitchListTile(
           title: const Text('Reminders'),
@@ -228,14 +264,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           label: 'Daily check-in reminder',
           value: _checkIn,
           emptyLabel: 'No reminder',
-          onPick: () =>
-              _pick(initial: _checkIn, onPicked: (t) => _checkIn = t),
+          onPick: () => _pick(initial: _checkIn, onPicked: (t) => _checkIn = t),
           onClear: () async {
             setState(() => _checkIn = null);
             await _persist();
           },
         ),
-
         const _SectionHeader('Adoption'),
         Padding(
           padding: const EdgeInsets.fromLTRB(
@@ -263,8 +297,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ),
         const SizedBox(height: AppSpacing.md),
         Padding(
-          padding: const EdgeInsets.fromLTRB(
-              AppSpacing.md, 0, AppSpacing.md, 0),
+          padding:
+              const EdgeInsets.fromLTRB(AppSpacing.md, 0, AppSpacing.md, 0),
           child: Text('Evidence shown: ${_evidenceLabel(_evidence)}',
               style: Theme.of(context).textTheme.bodyMedium),
         ),
@@ -279,23 +313,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ),
         SwitchListTile(
           title: const Text('New Parent Mode'),
-          subtitle:
-              const Text('Bias toward a survival stack tuned for fragmented sleep.'),
+          subtitle: const Text(
+              'Bias toward a survival stack tuned for fragmented sleep.'),
           value: _newParent,
           onChanged: (v) async {
             setState(() => _newParent = v);
             await _persist();
           },
         ),
-
-        const _SectionHeader('Appearance'),
-        SwitchListTile(
-          title: const Text('Dark mode'),
-          value: darkOn,
-          onChanged: (v) =>
-              ref.read(settingsRepositoryProvider).setDarkMode(v),
-        ),
-
         const _SectionHeader('Your data'),
         ListTile(
           leading: const Icon(Icons.info_outline),
@@ -305,15 +330,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ListTile(
           leading: const Icon(Icons.ios_share),
           title: const Text('Export my data'),
-          subtitle:
-              const Text('Save everything as a JSON file you own (unencrypted).'),
+          subtitle: const Text(
+              'Save everything as a JSON file you own (unencrypted).'),
           onTap: _export,
         ),
         const BackupSettingsSection(),
         ListTile(
-          leading: const Icon(Icons.delete_outline, color: AppColors.clay),
-          title: const Text('Erase all data',
-              style: TextStyle(color: AppColors.clay)),
+          leading: Icon(Icons.delete_outline,
+              color: BulwarkPalette.of(context).clay),
+          title: Text('Erase all data',
+              style: TextStyle(color: BulwarkPalette.of(context).clay)),
           onTap: _erase,
         ),
         const SizedBox(height: AppSpacing.lg),
@@ -347,7 +373,7 @@ class _SectionHeader extends StatelessWidget {
       child: Text(
         label.toUpperCase(),
         style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              color: AppColors.stone,
+              color: BulwarkPalette.of(context).secondaryText,
               letterSpacing: 0.8,
             ),
       ),
@@ -372,8 +398,9 @@ class _TimeTile extends StatelessWidget {
           style: Theme.of(context)
               .textTheme
               .bodyMedium
-              ?.copyWith(color: AppColors.basalt)),
-      trailing: const Icon(Icons.schedule, color: AppColors.stone),
+              ?.copyWith(color: Theme.of(context).colorScheme.onSurface)),
+      trailing:
+          Icon(Icons.schedule, color: BulwarkPalette.of(context).secondaryText),
       onTap: onTap,
     );
   }
@@ -405,12 +432,16 @@ class _MealTile extends StatelessWidget {
       subtitle: Text(
         v == null ? emptyLabel : minutesToLabel(v.hour * 60 + v.minute),
         style: text.bodyMedium?.copyWith(
-            color: v == null ? AppColors.stone : AppColors.basalt),
+            color: v == null
+                ? BulwarkPalette.of(context).secondaryText
+                : Theme.of(context).colorScheme.onSurface),
       ),
       trailing: v == null
-          ? const Icon(Icons.schedule, color: AppColors.stone)
+          ? Icon(Icons.schedule,
+              color: BulwarkPalette.of(context).secondaryText)
           : IconButton(
-              icon: const Icon(Icons.clear, color: AppColors.stone),
+              icon: Icon(Icons.clear,
+                  color: BulwarkPalette.of(context).secondaryText),
               tooltip: 'Clear',
               onPressed: onClear,
             ),

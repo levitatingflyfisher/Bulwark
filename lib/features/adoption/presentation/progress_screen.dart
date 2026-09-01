@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:openhearth_design/openhearth_design.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
@@ -11,8 +12,10 @@ import 'package:bulwark/features/adoption/domain/wall_layout.dart';
 import 'package:bulwark/features/adoption/presentation/habit_actions.dart';
 import 'package:bulwark/features/adoption/presentation/providers.dart';
 import 'package:bulwark/features/adoption/presentation/wall_painter.dart';
-import 'package:bulwark/shared/theme/app_colors.dart';
+import 'package:bulwark/shared/theme/app_palette.dart';
 import 'package:bulwark/shared/theme/app_spacing.dart';
+import 'package:bulwark/shared/widgets/theme_toggle.dart';
+import 'package:bulwark/shared/widgets/undo_host.dart';
 
 /// The signature Progress screen: the drystone wall (a stone per graduated
 /// habit), a weekly adherence trend, and the "made automatic" list. No streaks,
@@ -30,15 +33,21 @@ class ProgressScreen extends ConsumerWidget {
         ref.watch(allCheckinsProvider).valueOrNull ?? const <Checkin>[];
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Progress')),
-      body: (graduatedAsync.isLoading || activeAsync.isLoading)
-          ? const Center(child: CircularProgressIndicator())
-          : _ProgressBody(
-              graduated: graduatedAsync.valueOrNull ?? const [],
-              activeCount: (activeAsync.valueOrNull ?? const []).length,
-              pulses: pulses,
-              checkins: checkins,
-            ),
+      appBar: AppBar(
+        title: const Text('Progress'),
+        actions: const [ThemeToggle()],
+      ),
+      body: OhPage(
+        padding: EdgeInsets.zero,
+        child: (graduatedAsync.isLoading || activeAsync.isLoading)
+            ? const Center(child: CircularProgressIndicator())
+            : _ProgressBody(
+                graduated: graduatedAsync.valueOrNull ?? const [],
+                active: activeAsync.valueOrNull ?? const [],
+                pulses: pulses,
+                checkins: checkins,
+              ),
+      ),
     );
   }
 }
@@ -46,13 +55,13 @@ class ProgressScreen extends ConsumerWidget {
 class _ProgressBody extends ConsumerWidget {
   const _ProgressBody({
     required this.graduated,
-    required this.activeCount,
+    required this.active,
     required this.pulses,
     required this.checkins,
   });
 
   final List<ActiveHabit> graduated;
-  final int activeCount;
+  final List<ActiveHabit> active;
   final List<Pulse> pulses;
   final List<Checkin> checkins;
 
@@ -75,8 +84,10 @@ class _ProgressBody extends ConsumerWidget {
       ...graduated.where((g) => !erodedSet.contains(g.interventionId)),
       ...graduated.where((g) => erodedSet.contains(g.interventionId)),
     ];
-    final erodedIds =
-        ordered.where((g) => erodedSet.contains(g.interventionId)).map((g) => g.interventionId).toList();
+    final erodedIds = ordered
+        .where((g) => erodedSet.contains(g.interventionId))
+        .map((g) => g.interventionId)
+        .toList();
 
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.md),
@@ -84,17 +95,16 @@ class _ProgressBody extends ConsumerWidget {
         Text('Your wall', style: text.titleMedium),
         const SizedBox(height: AppSpacing.xs),
         Text(
-          graduated.isEmpty
-              ? 'Every habit you make automatic sets a stone. None yet — keep '
-                  'checking in.'
-              : 'One stone for every habit you have made automatic. Tap a stone '
-                  'to see which.',
-          style: text.bodySmall?.copyWith(color: AppColors.stone),
+          // The same counts WallLayout.pack draws from, so the words and the
+          // stones can't disagree.
+          wallCaption(set: graduated.length, forming: active.length),
+          style: text.bodySmall
+              ?.copyWith(color: BulwarkPalette.of(context).secondaryText),
         ),
         const SizedBox(height: AppSpacing.md),
         _Wall(
           ordered: ordered,
-          activeCount: activeCount,
+          forming: active,
           erodedIds: erodedIds,
           erodedSet: erodedSet,
         ),
@@ -108,8 +118,9 @@ class _ProgressBody extends ConsumerWidget {
         if (graduated.isEmpty)
           Text(
             'Nothing here yet. A habit becomes automatic after a few steady '
-            'weeks — Bulwark will suggest it when it is ready.',
-            style: text.bodySmall?.copyWith(color: AppColors.stone),
+            'weeks, and Bulwark will suggest it when it is ready.',
+            style: text.bodySmall
+                ?.copyWith(color: BulwarkPalette.of(context).secondaryText),
           )
         else
           for (final g in graduated.reversed)
@@ -123,14 +134,44 @@ class _ProgressBody extends ConsumerWidget {
   }
 
   Future<void> _repoint(
-      BuildContext context, WidgetRef ref, ActiveHabit habit) async {
-    await activateHabit(ref, habit.interventionId);
-    if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-          content: Text('${habit.intervention.title} is active again.')),
-    );
+          BuildContext context, WidgetRef ref, ActiveHabit habit) =>
+      repointHabit(ref, habit);
+}
+
+/// The line under "Your wall", built from the same two counts the wall is
+/// drawn from: [set] graduated stones (set or weathered) and [forming]
+/// outlined ones for active habits.
+String wallCaption({required int set, required int forming}) {
+  if (set == 0 && forming == 0) {
+    return 'No stones yet. Activate a habit and its outline appears here; it '
+        'sets when the habit becomes automatic.';
   }
+  if (set == 0) {
+    return forming == 1
+        ? '1 outlined stone: the habit you are working on now. None is set '
+            'yet; it sets when the habit becomes automatic.'
+        : '$forming outlined stones: the habits you are working on now. None '
+            'is set yet; each sets when its habit becomes automatic.';
+  }
+  final setWords = set == 1 ? '1 stone set' : '$set stones set';
+  if (forming == 0) {
+    return '$setWords, one for each habit you have made automatic. Tap a '
+        'stone to see which.';
+  }
+  return '$setWords and $forming outlined (the habit${forming == 1 ? '' : 's'} '
+      'you are working on now). Tap a stone to see which.';
+}
+
+/// Repoint: a weathered stone's habit goes back to daily, with Undo.
+Future<void> repointHabit(WidgetRef ref, ActiveHabit habit) async {
+  final undo = ref.read(undoControllerProvider);
+  final actions = ref.read(habitActionsProvider);
+  final id = habit.interventionId;
+  final prior = await activateHabit(ref, id);
+  undo.show(
+    message: '${habit.intervention.title} is active again.',
+    onUndo: () => actions.restore(id, prior),
+  );
 }
 
 /// The tappable wall. Column count, packing, and hit-testing all derive from the
@@ -138,13 +179,15 @@ class _ProgressBody extends ConsumerWidget {
 class _Wall extends ConsumerWidget {
   const _Wall({
     required this.ordered,
-    required this.activeCount,
+    required this.forming,
     required this.erodedIds,
     required this.erodedSet,
   });
 
   final List<ActiveHabit> ordered;
-  final int activeCount;
+
+  /// The active habits, drawn as outlined stones after the set ones.
+  final List<ActiveHabit> forming;
   final List<String> erodedIds;
   final Set<String> erodedSet;
 
@@ -155,7 +198,7 @@ class _Wall extends ConsumerWidget {
         final columns = WallGeometry.columnsFor(constraints.maxWidth);
         final placements = const WallLayout().pack(
           graduatedCount: ordered.length,
-          activeCount: activeCount,
+          activeCount: forming.length,
           erodedIds: erodedIds,
           coursesWidth: columns,
         );
@@ -172,12 +215,52 @@ class _Wall extends ConsumerWidget {
             if (globalIndex < ordered.length) {
               _revealStone(context, ref, ordered[globalIndex],
                   erodedSet.contains(ordered[globalIndex].interventionId));
+            } else if (globalIndex - ordered.length < forming.length) {
+              // An outlined stone answers a tap too (it used to swallow it).
+              _revealForming(context, forming[globalIndex - ordered.length]);
             }
           },
           child: CustomPaint(
             key: const Key('wall-canvas'),
             size: size,
-            painter: WallPainter(placements: placements, columns: columns),
+            painter: WallPainter(
+              placements: placements,
+              columns: columns,
+              palette: BulwarkPalette.of(context),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _revealForming(BuildContext context, ActiveHabit habit) {
+    final since = habit.state.activatedAt;
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (sheetContext) {
+        final text = Theme.of(sheetContext).textTheme;
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(habit.intervention.title, style: text.titleLarge),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  since == null
+                      ? 'Being set. It sets into the wall when it becomes '
+                          'automatic.'
+                      : 'Being set, active since '
+                          '${DateFormat.yMMMd().format(since)}. It sets into '
+                          'the wall when it becomes automatic.',
+                  style: text.bodyMedium?.copyWith(
+                      color: BulwarkPalette.of(context).secondaryText),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -204,17 +287,19 @@ class _Wall extends ConsumerWidget {
                   graduatedAt == null
                       ? 'Made automatic.'
                       : 'Made automatic on ${DateFormat.yMMMd().format(graduatedAt)}.',
-                  style: text.bodyMedium?.copyWith(color: AppColors.stone),
+                  style: text.bodyMedium?.copyWith(
+                      color: BulwarkPalette.of(context).secondaryText),
                 ),
                 if (eroded) ...[
                   const SizedBox(height: AppSpacing.md),
                   Text('This one has felt shaky lately.',
-                      style: text.bodySmall?.copyWith(color: AppColors.clay)),
+                      style: text.bodySmall
+                          ?.copyWith(color: BulwarkPalette.of(context).clay)),
                   const SizedBox(height: AppSpacing.sm),
                   OutlinedButton.icon(
                     onPressed: () async {
                       Navigator.of(sheetContext).pop();
-                      await activateHabit(ref, habit.interventionId);
+                      await repointHabit(ref, habit);
                     },
                     icon: const Icon(LucideIcons.wrench, size: 16),
                     label: const Text('Repoint (make it active again)'),
@@ -246,7 +331,8 @@ class _AdherenceTrend extends StatelessWidget {
     if (rates.isEmpty) {
       return Text(
         'Check in through the week and your adherence trend appears here.',
-        style: text.bodySmall?.copyWith(color: AppColors.stone),
+        style: text.bodySmall
+            ?.copyWith(color: BulwarkPalette.of(context).secondaryText),
       );
     }
     final weeks = rates.keys.toList()..sort();
@@ -272,14 +358,17 @@ class _AdherenceTrend extends StatelessWidget {
                     child: Text('${(rates[week]! * 100).round()}%',
                         maxLines: 1,
                         softWrap: false,
-                        style:
-                            text.labelSmall?.copyWith(color: AppColors.stone)),
+                        style: text.labelSmall?.copyWith(
+                            color: BulwarkPalette.of(context).secondaryText)),
                   ),
                   const SizedBox(height: 2),
                   Container(
-                    height: (rates[week]! * _barMaxHeight).clamp(2.0, _barMaxHeight),
+                    height: (rates[week]! * _barMaxHeight)
+                        .clamp(2.0, _barMaxHeight),
                     decoration: BoxDecoration(
-                      color: AppColors.lichen.withValues(alpha: 0.75),
+                      color: BulwarkPalette.of(context)
+                          .lichen
+                          .withValues(alpha: 0.75),
                       borderRadius: BorderRadius.circular(3),
                     ),
                   ),
@@ -289,8 +378,8 @@ class _AdherenceTrend extends StatelessWidget {
                     child: Text(DateFormat('M/d').format(week),
                         maxLines: 1,
                         softWrap: false,
-                        style:
-                            text.labelSmall?.copyWith(color: AppColors.stone)),
+                        style: text.labelSmall?.copyWith(
+                            color: BulwarkPalette.of(context).secondaryText)),
                   ),
                 ],
               ),
@@ -331,7 +420,9 @@ class _GraduatedRow extends StatelessWidget {
                   child: Icon(
                     eroded ? LucideIcons.triangleAlert : LucideIcons.check,
                     size: 16,
-                    color: eroded ? AppColors.clay : AppColors.lichen,
+                    color: eroded
+                        ? BulwarkPalette.of(context).clay
+                        : BulwarkPalette.of(context).lichen,
                   ),
                 ),
                 const SizedBox(width: AppSpacing.sm),
@@ -346,8 +437,8 @@ class _GraduatedRow extends StatelessWidget {
                       if (graduatedAt != null)
                         Text(
                           'Automatic since ${DateFormat.yMMMd().format(graduatedAt)}',
-                          style: text.bodySmall
-                              ?.copyWith(color: AppColors.stone),
+                          style: text.bodySmall?.copyWith(
+                              color: BulwarkPalette.of(context).secondaryText),
                         ),
                     ],
                   ),
@@ -361,7 +452,7 @@ class _GraduatedRow extends StatelessWidget {
                 child: TextButton.icon(
                   onPressed: onRepoint,
                   style: TextButton.styleFrom(
-                    foregroundColor: AppColors.clay,
+                    foregroundColor: BulwarkPalette.of(context).clay,
                     padding: EdgeInsets.zero,
                     minimumSize: const Size(0, 32),
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,

@@ -29,28 +29,24 @@ void main() {
     expect(find.textContaining('not medical advice'), findsWidgets);
   });
 
-  testWidgets('the disclaimer gate blocks Continue until acknowledged',
-      (tester) async {
+  testWidgets('the disclaimer is standing text, not a tick that holds '
+      'Continue hostage (persona T1)', (tester) async {
     await tester.pumpWidget(ProviderScope(
       overrides: adoptionOverrides(db: db),
       child: const BulwarkApp(),
     ));
     await tester.pumpAndSettle();
 
-    FilledButton continueButton() =>
-        tester.widget<FilledButton>(find.widgetWithText(FilledButton, 'Continue'));
-
-    // Disabled before the box is checked…
-    expect(continueButton().onPressed, isNull);
-
-    await tester.tap(find.byType(Checkbox));
-    await tester.pump();
-
-    // …enabled after.
-    expect(continueButton().onPressed, isNotNull);
+    expect(find.textContaining('not medical advice'), findsWidgets);
+    expect(find.byType(Checkbox), findsNothing);
+    expect(
+        tester
+            .widget<FilledButton>(find.widgetWithText(FilledButton, 'Continue'))
+            .onPressed,
+        isNotNull);
   });
 
-  testWidgets('happy path: acknowledge → map → reveal → land on Home',
+  testWidgets('happy path: welcome → map → reveal → land on Home',
       (tester) async {
     await tester.pumpWidget(ProviderScope(
       overrides: adoptionOverrides(db: db),
@@ -58,9 +54,7 @@ void main() {
     ));
     await tester.pumpAndSettle();
 
-    // Step 1: acknowledge and continue.
-    await tester.tap(find.byType(Checkbox));
-    await tester.pump();
+    // Step 1: read and continue.
     await tester.tap(find.widgetWithText(FilledButton, 'Continue'));
     await tester.pumpAndSettle();
 
@@ -109,12 +103,7 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
-      // Advance to the lifestyle-map step, the densest form. The disclaimer
-      // checkbox can sit below the fold at 320 dp — scroll it into view first.
-      await tester.ensureVisible(find.byType(Checkbox));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byType(Checkbox));
-      await tester.pump();
+      // Advance to the lifestyle-map step, the densest form.
       await tester.tap(find.widgetWithText(FilledButton, 'Continue'));
       await tester.pumpAndSettle();
 

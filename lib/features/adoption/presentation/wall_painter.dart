@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:bulwark/features/adoption/domain/wall_layout.dart';
-import 'package:bulwark/shared/theme/app_colors.dart';
+import 'package:bulwark/shared/theme/app_palette.dart';
 
 /// One stone's on-canvas cell — the uniform grid rect used for both drawing and
 /// tap hit-testing. Drawing insets a slightly-irregular stone inside the cell so
@@ -82,10 +82,17 @@ class WallGeometry {
 /// `weathered` stones for eroded graduated habits (cracked, clay-tinted). Slight
 /// deterministic per-stone variation keeps it masonry, not a grid.
 class WallPainter extends CustomPainter {
-  WallPainter({required this.placements, required this.columns});
+  WallPainter({
+    required this.placements,
+    required this.columns,
+    this.palette = BulwarkPalette.light,
+  });
 
   final List<StonePlacement> placements;
   final int columns;
+
+  /// The theme's wall colours, so the dark wall is drawn for a dark ground.
+  final BulwarkPalette palette;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -120,19 +127,20 @@ class WallPainter extends CustomPainter {
 
     switch (stone.placement.kind) {
       case StoneKind.set:
-        final fill = Color.lerp(AppColors.basalt, AppColors.stone, lightness * 0.5)!;
+        final fill =
+            Color.lerp(palette.wallSet, palette.wallForming, lightness * 0.5)!;
         canvas.drawRRect(rrect, Paint()..color = fill);
-        canvas.drawRRect(rrect, _stroke(AppColors.basalt700, 1));
+        canvas.drawRRect(rrect, _stroke(palette.wallSetEdge, 1));
       case StoneKind.forming:
         canvas.drawRRect(
-            rrect, Paint()..color = AppColors.stone.withValues(alpha: 0.12));
+            rrect, Paint()..color = palette.wallForming.withValues(alpha: 0.12));
         canvas.drawRRect(
-            rrect, _stroke(AppColors.basalt.withValues(alpha: 0.55), 1.4));
+            rrect, _stroke(palette.wallFormingEdge.withValues(alpha: 0.55), 1.4));
       case StoneKind.weathered:
         canvas.drawRRect(
-            rrect, Paint()..color = AppColors.clay.withValues(alpha: 0.18));
+            rrect, Paint()..color = palette.clay.withValues(alpha: 0.18));
         canvas.drawRRect(
-            rrect, _stroke(AppColors.clay.withValues(alpha: 0.7), 1.4));
+            rrect, _stroke(palette.clay.withValues(alpha: 0.7), 1.4));
         _paintCrack(canvas, rect, seed);
     }
   }
@@ -144,7 +152,7 @@ class WallPainter extends CustomPainter {
       ..moveTo(x, r.top + 2)
       ..lineTo(x + 3, r.center.dy)
       ..lineTo(x - 2, r.bottom - 2);
-    canvas.drawPath(path, _stroke(AppColors.clay.withValues(alpha: 0.6), 1));
+    canvas.drawPath(path, _stroke(palette.clay.withValues(alpha: 0.6), 1));
   }
 
   Paint _stroke(Color color, double width) => Paint()
@@ -160,7 +168,9 @@ class WallPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(WallPainter oldDelegate) =>
-      oldDelegate.columns != columns || !_sameStones(oldDelegate.placements);
+      oldDelegate.columns != columns ||
+      oldDelegate.palette != palette ||
+      !_sameStones(oldDelegate.placements);
 
   bool _sameStones(List<StonePlacement> other) {
     if (other.length != placements.length) return false;

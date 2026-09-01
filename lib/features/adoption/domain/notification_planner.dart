@@ -1,5 +1,6 @@
 import 'package:bulwark/features/adoption/domain/enums.dart';
 import 'package:bulwark/features/adoption/domain/habit_state.dart';
+import 'package:bulwark/features/adoption/domain/weak_trigger.dart';
 import 'package:bulwark/features/adoption/domain/profile.dart';
 import 'package:bulwark/features/library/domain/content_library.dart';
 import 'package:bulwark/features/library/domain/enums.dart';
@@ -122,15 +123,8 @@ class NotificationPlanner {
     ));
   }
 
-  Anchor _resolveAnchor(HabitState s, Intervention i) {
-    final override = s.triggerAnchorOverride;
-    if (override != null) {
-      for (final a in Anchor.values) {
-        if (a.name == override) return a;
-      }
-    }
-    return i.trigger.anchor;
-  }
+  Anchor _resolveAnchor(HabitState s, Intervention i) =>
+      effectiveAnchor(s, i);
 
   /// Quiet window is `[bed, wake)`; when bed is later in the day than wake the
   /// window wraps past midnight.

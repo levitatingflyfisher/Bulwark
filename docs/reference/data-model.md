@@ -13,8 +13,11 @@ table when it detects `from < 2`. There is no migration older than that.
 
 ## `UserPrefs`
 
-Simple key→value store for shell preferences (theme, the reminders master
-switch).
+Simple key→value store for shell preferences: `theme_mode` (`system`,
+`light` or `dark`; missing or unknown means follow the phone),
+`reminders` (`on`/`off`, missing means off), and `forgot_nudge:<id>` (the
+ISO date the "keeps forgetting" offer was last answered for that habit; a
+UI memory, not in exports or backups).
 
 | Column | Type | Notes |
 |---|---|---|
@@ -24,14 +27,15 @@ switch).
 ## `HabitStates`
 
 Per-intervention adoption state — where a habit sits in the
-queued→active→graduated→retired/paused lifecycle. Generated row class is
+queued→active→graduated lifecycle, plus paused ("set aside": off Today,
+every field kept, one Activate from active again). Generated row class is
 `HabitStateRow` (to avoid colliding with the domain `HabitState`).
 
 | Column | Type | Notes |
 |---|---|---|
 | `id` | INTEGER | Autoincrement primary key. |
 | `interventionId` | TEXT | **Unique.** The join key into the shipped content. |
-| `status` | INTEGER | `HabitStatus` ordinal: `queued=0, active=1, graduated=2, retired=3, paused=4`. **Load-bearing — do not reorder the enum.** |
+| `status` | INTEGER | `HabitStatus` ordinal: `queued=0, active=1, graduated=2, paused=3`. **Load-bearing — do not reorder the enum.** (A never-written `retired=3` was removed before any install existed, which moved `paused` from 4.) |
 | `queuePosition` | INTEGER? | Rank while queued; null once a habit leaves the queue. |
 | `activatedAt` | DATETIME? | Set when a habit becomes active (including re-activation via "repoint"). |
 | `graduatedAt` | DATETIME? | Set when a habit graduates. |

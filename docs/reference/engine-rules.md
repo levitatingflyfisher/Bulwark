@@ -79,6 +79,23 @@ from Dart's `weekday` where Monday = 1); `didRate = did / total`
 be told apart from a deliberate "skipped" — a signal the trigger needs
 changing, not that the user needs more willpower.
 
+## `WeakTriggerCheck`
+
+The rule that acts on that signal (`weak_trigger.dart`, pure, clock passed
+in). A habit has a weak trigger when, over the trailing **14 days**, it has
+at least **3** `forgot` answers **and** those are at least **a third** of its
+answers (`forgotRate >= 1/3`), so a few misses among many did-its don't
+count, and skips never do. Answers on or before the day the person last
+answered the offer (chose a new moment, or "Not now") are ignored, so the
+offer doesn't come straight back; that date is kept per habit under a
+`forgot_nudge:<id>` key in `UserPrefs`. Only active habits are offered.
+Home then offers **Change the moment**: the person picks one of the daily
+moments (`reanchorMoments`: waking through bedtime, brushing, shower) and
+it is written to `HabitState.triggerAnchorOverride`, which the notification
+planner, Home's card and next-up line, and the detail screen all read
+through `effectiveAnchor` (override when it names a real `Anchor`, else the
+content's). The change offers Undo.
+
 ## `NotificationPlanner`
 
 Plans (never applies) the day's local notifications. Pure: `plan()` returns

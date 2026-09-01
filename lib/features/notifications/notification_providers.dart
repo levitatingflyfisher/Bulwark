@@ -26,17 +26,24 @@ NotificationService notificationService(Ref ref) => createNotificationService();
 /// yet) we reschedule an empty plan, which cancels everything. Best-effort —
 /// any failure (a denied permission, a plugin missing under test) is swallowed
 /// so it never surfaces to the user or aborts the caller's save.
-Future<void> rescheduleNotifications(WidgetRef ref) async {
+Future<void> rescheduleNotifications(WidgetRef ref) =>
+    rescheduleNotificationsFrom(ref.read);
+
+/// [rescheduleNotifications] for callers that hold a provider `Ref` (or any
+/// reader) rather than a widget's, such as an app-lived service whose work
+/// outlives the widget that started it.
+Future<void> rescheduleNotificationsFrom(
+    T Function<T>(ProviderListenable<T> provider) read) async {
   try {
-    final service = ref.read(notificationServiceProvider);
-    final prefs = await ref.read(settingsRepositoryProvider).getUserPrefs();
-    final profile = await ref.read(profileProvider.future);
+    final service = read(notificationServiceProvider);
+    final prefs = await read(settingsRepositoryProvider).getUserPrefs();
+    final profile = await read(profileProvider.future);
     if (!prefs.remindersEnabled || profile == null) {
       await service.reschedule(const []);
       return;
     }
-    final library = await ref.read(contentLibraryProvider.future);
-    final active = await ref.read(habitStateRepositoryProvider).activeStates();
+    final library = await read(contentLibraryProvider.future);
+    final active = await read(habitStateRepositoryProvider).activeStates();
     final planned = const NotificationPlanner()
         .plan(profile: profile, active: active, library: library);
     await service.reschedule(planned);

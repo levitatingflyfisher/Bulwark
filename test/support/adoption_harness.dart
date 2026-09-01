@@ -8,6 +8,9 @@ import 'package:bulwark/features/notifications/notification_providers.dart';
 import 'package:bulwark/features/settings/domain/user_prefs.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sanctuary_auth_core/sanctuary_auth_core.dart';
+import 'package:sanctuary_backup_ui/sanctuary_backup_ui.dart';
+import 'package:sanctuary_backup_ui/testing.dart';
 
 import 'content_builders.dart';
 import 'fake_notification_service.dart';
@@ -39,7 +42,7 @@ ContentLibrary testLibrary() => ContentLibrary.build(
 
 /// The provider overrides every core-loop widget test needs: an in-memory DB,
 /// a fixed content library, and a stubbed prefs stream (so the drift query
-/// stream behind `ThemePill` never schedules the pending timer that trips
+/// stream behind `ThemeToggle` never schedules the pending timer that trips
 /// widget-test teardown).
 List<Override> adoptionOverrides({
   required AppDatabase db,
@@ -54,4 +57,24 @@ List<Override> adoptionOverrides({
       // platform channel; pass one in to assert on the scheduler wiring.
       notificationServiceProvider
           .overrideWithValue(notifications ?? FakeNotificationService()),
+    ];
+
+/// The sanctuary backup stack with in-memory fakes, for any test that renders
+/// the backup section or the Finish setup reminder. Pass [keyStore] seeded
+/// with words to simulate a household that has set up backup.
+List<Override> backupOverrides({SecureKeyStore? keyStore}) => [
+      secureKeyStoreProvider
+          .overrideWithValue(keyStore ?? InMemorySecureKeyStore()),
+      cryptoServiceProvider.overrideWithValue(FakeCryptoService()),
+      sanctuaryAppDomainProvider.overrideWithValue('bulwark'),
+      sanctuaryBackupConfigProvider.overrideWithValue(
+        const SanctuaryBackupConfig(
+          appId: 'bulwark',
+          aadContext: 'bulwark-backup/v1',
+          appDisplayName: 'Bulwark',
+        ),
+      ),
+      backupSerializerProvider.overrideWithValue(FakeBackupSerializer()),
+      backupReminderStoreProvider
+          .overrideWithValue(InMemoryBackupReminderStore()),
     ];

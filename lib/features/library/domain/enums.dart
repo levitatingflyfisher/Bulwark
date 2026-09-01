@@ -98,5 +98,5 @@ T _parse<T extends Enum>(List<T> values, String value, String enumName) {
   for (final v in values) {
     if (v.name == value) return v;
   }
-  throw FormatException('Unknown $enumName value: "$value"');
+  throw FormatException('Unknown $enumName value “$value”');
 }

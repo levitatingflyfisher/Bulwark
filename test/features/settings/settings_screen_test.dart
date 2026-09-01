@@ -5,6 +5,7 @@ import 'package:bulwark/features/adoption/domain/enums.dart';
 import 'package:bulwark/features/adoption/domain/habit_state.dart';
 import 'package:bulwark/features/adoption/domain/profile.dart';
 import 'package:bulwark/features/settings/presentation/settings_screen.dart';
+import 'package:bulwark/shared/theme/app_palette.dart';
 import 'package:bulwark/shared/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -32,7 +33,7 @@ SecureKeyStore _ghostKeyStore() {
 }
 
 /// A key store that already has an acknowledged seed phrase — the heavier
-/// "Export backup" + "Reset identity" tiles are visible in this state, the
+/// "Export backup" + "Remove recovery words" tiles are visible in this state, the
 /// widest the backup section gets.
 SecureKeyStore _ackedKeyStore() {
   final store = MockSecureKeyStore();
@@ -64,6 +65,7 @@ Widget _app(
   FakeNotificationService fake, {
   double textScale = 1.0,
   SecureKeyStore? keyStore,
+  VaultStore? vault,
 }) {
   final router = GoRouter(
     initialLocation: '/settings',
@@ -93,6 +95,9 @@ Widget _app(
         ),
       ),
       backupSerializerProvider.overrideWithValue(FakeBackupSerializer()),
+      backupReminderStoreProvider
+          .overrideWithValue(InMemoryBackupReminderStore()),
+      vaultStoreProvider.overrideWithValue(vault ?? InMemoryVaultStore()),
     ],
     child: MaterialApp.router(
       theme: AppTheme.light,
@@ -183,16 +188,67 @@ void main() {
     await tester.tap(find.text('Erase all data'));
     await tester.pumpAndSettle();
 
-    // The calm, reversible-sounding confirmation.
+    // The confirmation's buttons answer its question (writing-is-designing
+    // -10), and the destructive one is clay with an icon, never red.
     expect(find.text('Erase all data?'), findsOneWidget);
-    expect(find.textContaining("can't be undone"), findsOneWidget);
-    await tester.tap(find.widgetWithText(FilledButton, 'Erase everything'));
+    expect(find.textContaining('no copy to restore'), findsOneWidget);
+    expect(find.text('Keep my data'), findsOneWidget);
+    final confirm = find.ancestor(
+        of: find.text('Erase everything'),
+        matching: find.bySubtype<FilledButton>());
+    expect(confirm, findsOneWidget);
+    final bg = tester
+        .widget<FilledButton>(confirm)
+        .style!
+        .backgroundColor!
+        .resolve(<WidgetState>{});
+    expect(bg, BulwarkPalette.light.clay);
+    await tester.tap(confirm);
     await tester.pumpAndSettle();
 
     expect(find.text('ONBOARDING'), findsOneWidget);
     expect(await ProfileRepository(db).get(), isNull);
     expect(await HabitStateRepository(db).getAll(), isEmpty);
     expect(fake.lastPlan, isEmpty); // reminders cancelled
+  });
+
+  testWidgets('with recovery words, erase puts a safety copy in Previous '
+      'backups first and says so', (tester) async {
+    _tallView(tester);
+    await _seedProfile(db);
+    final vault = InMemoryVaultStore();
+    await tester.pumpWidget(
+        _app(db, fake, keyStore: _ackedKeyStore(), vault: vault));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Erase all data'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('safety copy goes into Previous backups'),
+        findsOneWidget);
+    await tester.tap(find.text('Erase everything'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('ONBOARDING'), findsOneWidget);
+    expect(await ProfileRepository(db).get(), isNull);
+    expect(await vault.list(), hasLength(1));
+  });
+
+  testWidgets('if the safety copy fails, nothing is erased', (tester) async {
+    _tallView(tester);
+    await _seedProfile(db);
+    final vault = InMemoryVaultStore()..failNextPut = true;
+    await tester.pumpWidget(
+        _app(db, fake, keyStore: _ackedKeyStore(), vault: vault));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Erase all data'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Erase everything'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('nothing was erased'), findsOneWidget);
+    expect(find.text('ONBOARDING'), findsNothing);
+    expect(await ProfileRepository(db).get(), isNotNull);
   });
 
   testWidgets('Export tile is labelled unencrypted; the backup section '
@@ -203,13 +259,13 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.textContaining('unencrypted'), findsOneWidget);
-    expect(find.text('Encrypted Backup'), findsOneWidget);
+    expect(find.text('Backup'), findsOneWidget);
     expect(find.text('Set up encrypted backup'), findsOneWidget);
     expect(find.text('Restore from backup'), findsOneWidget);
   });
 
   testWidgets(
-      'the fully set-up backup state (Export + Reset identity) renders',
+      'the fully set-up backup state (Export + Remove recovery words) renders',
       (tester) async {
     _tallView(tester);
     await _seedProfile(db);
@@ -217,7 +273,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Export backup'), findsOneWidget);
-    expect(find.text('Reset identity'), findsOneWidget);
+    expect(find.text('Remove recovery words'), findsOneWidget);
     expect(find.text('Set up encrypted backup'), findsNothing);
   });
 
@@ -239,9 +295,9 @@ void main() {
 
     testWidgets(
         'Settings holds at 320dp width and ${scale}x text with the backup '
-        'section fully expanded (Export + Reset identity)', (tester) async {
+        'section fully expanded (Export + Remove recovery words)', (tester) async {
       // The widest the backup section gets — Export, "last backup" subtitle,
-      // and the danger-zone Reset identity tile all visible at once.
+      // and the danger-zone Remove recovery words tile all visible at once.
       tester.view.devicePixelRatio = 1.0;
       tester.view.physicalSize = const Size(320, 4000);
       addTearDown(tester.view.resetPhysicalSize);

@@ -52,8 +52,27 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  testWidgets('a set-aside habit is listed under Set aside and can be taken '
+      'up again from there', (tester) async {
+    await HabitStateRepository(db).upsert(HabitState(
+      interventionId: 'sleep-window',
+      status: HabitStatus.paused,
+      activatedAt: DateTime(2026, 1, 1),
+      createdAt: DateTime(2026, 1, 1),
+    ));
+    await pump(tester);
+
+    expect(find.text('Set aside'), findsOneWidget);
+    expect(find.text('sleep-window'), findsOneWidget);
+    await tester.tap(find.widgetWithText(TextButton, 'Activate'));
+    await tester.pumpAndSettle();
+
+    expect((await HabitStateRepository(db).byInterventionId('sleep-window'))!
+        .status, HabitStatus.active);
+  });
+
   Future<void> tapReady(WidgetTester tester) async {
-    await tester.tap(find.widgetWithText(FilledButton, "I'm ready for another"));
+    await tester.tap(find.widgetWithText(FilledButton, 'I’m ready for another'));
     await tester.pumpAndSettle();
   }
 

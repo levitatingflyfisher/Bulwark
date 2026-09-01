@@ -18,6 +18,11 @@ already know the basics from [your first week](../tutorials/your-first-week.md).
      check-in tracking it.
    - **Add to queue** puts it in your backlog instead — see it any time on
      the **Queue** screen, in the order you added things.
+   - On a habit that is already active, **Set aside** takes it off Today
+     and out of the check-in without losing anything. It is then listed on
+     the **Queue** screen under **Set aside**, with **Activate** to take it
+     up again. Every one of these changes offers **Undo** in a bar at the
+     bottom of the screen until you act on it or make another change.
    - If the card instead says **"Reference only for now"**, the item is
      symptom- or period-triggered (like zinc lozenges or an annual
      bloodwork panel) rather than a daily habit — it's there to read and
@@ -85,20 +90,24 @@ backup-and-restore feature, see the next section.
 
 **Erase all data**, right below Export on the same screen, is the reverse:
 it asks you to confirm, then wipes every habit, check-in, pulse, and
-shopping state in one transaction and returns you to onboarding. There is no
-undo — export or back up first if you want to keep a copy.
+shopping state in one transaction and returns you to onboarding. If you have
+set up backup (you have recovery words), it first puts a verified safety
+copy in **Previous backups**, and restoring that copy brings everything
+back; if that copy can't be made, nothing is erased. Without backup there is
+no copy, and the dialog says so.
 
 ## Encrypted backup & restore
 
-Right below Export my data is a second, separate **Encrypted Backup**
+Right below Export my data is a second, separate **Backup**
 section — this one *does* restore, and the file it produces (`.ohbk`) is
 useless to anyone but you.
 
-1. **Set up encrypted backup.** Tap it once to generate a 12-word recovery
-   phrase, then write the words down on paper. You'll be asked to re-enter
-   them immediately — this isn't busywork, it's the only way the app can
-   confirm your paper copy is actually correct before it's the only copy
-   that matters.
+1. **Set up encrypted backup.** Tap it once to see a 12-word recovery
+   phrase, then write the words down on paper. Nothing is stored until you
+   tap "I've written this down". You'll then re-enter them word by word —
+   this isn't busywork, it's the only way the app can confirm your paper
+   copy is actually correct before it's the only copy that matters. Until
+   setup is finished, Home shows a dismissible "Backup isn't set up" line.
 2. **Export backup.** Once your phrase is confirmed, this encrypts your
    whole dataset (profile, habits, check-ins, pulses, shopping state — the
    same scope as the plaintext export, minus the app-shell theme/reminder

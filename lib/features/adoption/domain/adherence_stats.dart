@@ -14,7 +14,8 @@ class WeekAdherence {
   double get didRate => total == 0 ? 0 : did / total;
   double get forgotRate => total == 0 ? 0 : forgot / total;
 
-  WeekAdherence _plus(CheckinResult r) => WeekAdherence(
+  /// This tally with one more answer.
+  WeekAdherence plus(CheckinResult r) => WeekAdherence(
         did: did + (r == CheckinResult.did ? 1 : 0),
         skipped: skipped + (r == CheckinResult.skipped ? 1 : 0),
         forgot: forgot + (r == CheckinResult.forgot ? 1 : 0),
@@ -32,7 +33,7 @@ class AdherenceStats {
     final byWeek = <DateTime, WeekAdherence>{};
     for (final c in checkins) {
       final week = _weekStart(c.date);
-      byWeek[week] = (byWeek[week] ?? const WeekAdherence())._plus(c.result);
+      byWeek[week] = (byWeek[week] ?? const WeekAdherence()).plus(c.result);
     }
     return byWeek;
   }

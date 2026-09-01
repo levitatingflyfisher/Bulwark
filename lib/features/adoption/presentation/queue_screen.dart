@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:openhearth_design/openhearth_design.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
@@ -9,8 +10,10 @@ import 'package:bulwark/features/adoption/presentation/habit_actions.dart';
 import 'package:bulwark/features/adoption/presentation/providers.dart';
 import 'package:bulwark/features/adoption/presentation/widgets/evidence_tag.dart';
 import 'package:bulwark/features/library/domain/enums.dart' show Evidence;
-import 'package:bulwark/shared/theme/app_colors.dart';
+import 'package:bulwark/shared/theme/app_palette.dart';
 import 'package:bulwark/shared/theme/app_spacing.dart';
+import 'package:bulwark/shared/widgets/theme_toggle.dart';
+import 'package:bulwark/shared/widgets/undo_host.dart';
 
 /// The backlog of queued habits, in queue order, plus the advisory
 /// "I'm ready for another" flow. The promotion gate advises — it never blocks:
@@ -32,8 +35,7 @@ class _QueueScreenState extends ConsumerState<QueueScreen> {
         .read(checkinRepositoryProvider)
         .since(DateTime.now().subtract(const Duration(days: 8)));
     if (!mounted) return;
-    final pace =
-        ref.read(profileProvider).valueOrNull?.pace ?? Pace.moderate;
+    final pace = ref.read(profileProvider).valueOrNull?.pace ?? Pace.moderate;
     final verdict = const PromotionGate().evaluate(
       now: DateTime.now(),
       states: states,
@@ -43,63 +45,129 @@ class _QueueScreenState extends ConsumerState<QueueScreen> {
     setState(() => _verdict = verdict);
   }
 
-  Future<void> _activateTop(String interventionId) async {
+  Future<void> _activateTop(String interventionId, String title) async {
     if (_busy) return;
     setState(() => _busy = true);
-    await activateHabit(ref, interventionId);
+    final undo = ref.read(undoControllerProvider);
+    final actions = ref.read(habitActionsProvider);
+    final prior = await activateHabit(ref, interventionId);
+    undo.show(
+      message: '$title is on your Today list.',
+      onUndo: () => actions.restore(interventionId, prior),
+    );
     if (!mounted) return;
     setState(() {
       _busy = false;
       _verdict = null;
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Activated. It is on your Today list.')),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
     final queuedAsync = ref.watch(queuedHabitsProvider);
+    final paused = ref.watch(pausedHabitsProvider).valueOrNull ?? const [];
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Queue')),
-      body: queuedAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            child:
-                Text('Something went wrong.\n$e', textAlign: TextAlign.center),
+      appBar: AppBar(
+        title: const Text('Queue'),
+        actions: const [ThemeToggle()],
+      ),
+      body: OhPage(
+        padding: EdgeInsets.zero,
+        child: queuedAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, st) => OhErrorState.fromError(
+            e,
+            stackTrace: st,
+            title: "Couldn’t load your queue",
+            onRetry: () => ref.invalidate(queuedHabitsProvider),
+          ),
+          data: (queued) {
+            if (queued.isEmpty && paused.isEmpty) return const _EmptyQueue();
+            final top = queued.isEmpty ? null : queued.first;
+            return ListView(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              children: [
+                if (top != null) ...[
+                  _ReadyCard(
+                    verdict: _verdict,
+                    topTitle: top.intervention.title,
+                    busy: _busy,
+                    onCheck: _evaluate,
+                    onActivateTop: () => _activateTop(
+                        top.interventionId, top.intervention.title),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  Text('In your queue',
+                      style: Theme.of(context).textTheme.titleSmall),
+                  const SizedBox(height: AppSpacing.sm),
+                  for (final habit in queued)
+                    _QueueRow(
+                      title: habit.intervention.title,
+                      action: habit.intervention.action,
+                      evidence: habit.intervention.evidence,
+                      onTap: () =>
+                          context.push('/intervention/${habit.interventionId}'),
+                    ),
+                ],
+                // Habits set aside from Today live here, each one tap from
+                // active again, so nothing set aside is lost once its Undo
+                // offer has gone.
+                if (paused.isNotEmpty) ...[
+                  const SizedBox(height: AppSpacing.md),
+                  Text('Set aside',
+                      style: Theme.of(context).textTheme.titleSmall),
+                  const SizedBox(height: AppSpacing.sm),
+                  for (final habit in paused)
+                    _SetAsideRow(
+                      habit: habit,
+                      onOpen: () =>
+                          context.push('/intervention/${habit.interventionId}'),
+                      onActivate: () => _activateTop(
+                          habit.interventionId, habit.intervention.title),
+                    ),
+                ],
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+/// A set-aside habit: its name, and Activate to take it up again.
+class _SetAsideRow extends StatelessWidget {
+  const _SetAsideRow({
+    required this.habit,
+    required this.onOpen,
+    required this.onActivate,
+  });
+
+  final ActiveHabit habit;
+  final VoidCallback onOpen;
+  final VoidCallback onActivate;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: onOpen,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+              AppSpacing.md, AppSpacing.xs, AppSpacing.xs, AppSpacing.xs),
+          child: Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Text(habit.intervention.title,
+                  style: Theme.of(context).textTheme.titleMedium),
+              TextButton(onPressed: onActivate, child: const Text('Activate')),
+            ],
           ),
         ),
-        data: (queued) {
-          if (queued.isEmpty) return const _EmptyQueue();
-          final top = queued.first;
-          return ListView(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            children: [
-              _ReadyCard(
-                verdict: _verdict,
-                topTitle: top.intervention.title,
-                busy: _busy,
-                onCheck: _evaluate,
-                onActivateTop: () => _activateTop(top.interventionId),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              Text('In your queue',
-                  style: Theme.of(context).textTheme.titleSmall),
-              const SizedBox(height: AppSpacing.sm),
-              for (final habit in queued)
-                _QueueRow(
-                  title: habit.intervention.title,
-                  action: habit.intervention.action,
-                  evidence: habit.intervention.evidence,
-                  onTap: () =>
-                      context.push('/intervention/${habit.interventionId}'),
-                ),
-            ],
-          );
-        },
       ),
     );
   }
@@ -123,7 +191,7 @@ class _ReadyCard extends StatelessWidget {
 
   static String _reasonCopy(GateReason reason) => switch (reason) {
         GateReason.tooSoon =>
-          'You added one recently — habits settle better with a little space.',
+          'You added one recently. Habits settle better with a little space.',
         GateReason.capReached =>
           'You have a full plate (10 active). Consider graduating one first.',
         GateReason.unsteady =>
@@ -147,30 +215,31 @@ class _ReadyCard extends StatelessWidget {
               Text(
                 'Bulwark will take a quick look at how your current habits are '
                 'settling.',
-                style: text.bodySmall?.copyWith(color: AppColors.stone),
+                style: text.bodySmall
+                    ?.copyWith(color: BulwarkPalette.of(context).secondaryText),
               ),
               const SizedBox(height: AppSpacing.sm),
               SizedBox(
                 width: double.infinity,
                 child: FilledButton(
                   onPressed: onCheck,
-                  child: const Text("I'm ready for another"),
+                  child: const Text("I’m ready for another"),
                 ),
               ),
             ] else if (v.advisable) ...[
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Padding(
-                    padding: EdgeInsets.only(top: 2),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
                     child: Icon(LucideIcons.circleCheck,
-                        size: 18, color: AppColors.lichen),
+                        size: 18, color: BulwarkPalette.of(context).lichen),
                   ),
                   const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: Text('Looks like a good time.',
-                        style: text.titleMedium
-                            ?.copyWith(color: AppColors.lichen)),
+                        style: text.titleMedium?.copyWith(
+                            color: BulwarkPalette.of(context).lichen)),
                   ),
                 ],
               ),
@@ -186,16 +255,16 @@ class _ReadyCard extends StatelessWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Padding(
-                    padding: EdgeInsets.only(top: 2),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
                     child: Icon(LucideIcons.info,
-                        size: 18, color: AppColors.clay),
+                        size: 18, color: BulwarkPalette.of(context).clay),
                   ),
                   const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: Text('A gentle heads-up',
-                        style:
-                            text.titleMedium?.copyWith(color: AppColors.clay)),
+                        style: text.titleMedium
+                            ?.copyWith(color: BulwarkPalette.of(context).clay)),
                   ),
                 ],
               ),
@@ -203,8 +272,8 @@ class _ReadyCard extends StatelessWidget {
               for (final reason in v.reasons)
                 Padding(
                   padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-                  child: Text('• ${_reasonCopy(reason)}',
-                      style: text.bodySmall),
+                  child:
+                      Text('• ${_reasonCopy(reason)}', style: text.bodySmall),
                 ),
               const SizedBox(height: AppSpacing.sm),
               // Advisory, never blocking: the override is always offered.
@@ -254,10 +323,10 @@ class _QueueRow extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis),
               const SizedBox(height: AppSpacing.xs),
+              // What the habit IS: body text, whole, not a footnote.
               Text(action,
-                  style: text.bodySmall?.copyWith(color: AppColors.stone),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis),
+                  style: text.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurface)),
               const SizedBox(height: AppSpacing.sm),
               EvidenceTag(evidence),
             ],
@@ -286,7 +355,8 @@ class _EmptyQueue extends StatelessWidget {
             Text(
               'Add habits from the Library and they will line up here for when '
               'you are ready.',
-              style: text.bodyLarge?.copyWith(color: AppColors.stone),
+              style: text.bodyLarge
+                  ?.copyWith(color: BulwarkPalette.of(context).secondaryText),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppSpacing.lg),

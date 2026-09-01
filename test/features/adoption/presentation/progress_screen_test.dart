@@ -60,6 +60,48 @@ Widget _screen({
     );
 
 void main() {
+  group('the wall caption names what is drawn (audit dont-make-me-think-10)',
+      () {
+    test('no stones at all', () {
+      expect(wallCaption(set: 0, forming: 0),
+          'No stones yet. Activate a habit and its outline appears here; it '
+          'sets when the habit becomes automatic.');
+    });
+    test('outlines only: no "None yet" beside two drawn stones', () {
+      expect(wallCaption(set: 0, forming: 2),
+          '2 outlined stones: the habits you are working on now. None is set '
+          'yet; each sets when its habit becomes automatic.');
+      expect(wallCaption(set: 0, forming: 1),
+          '1 outlined stone: the habit you are working on now. None is set '
+          'yet; it sets when the habit becomes automatic.');
+    });
+    test('set stones only', () {
+      expect(wallCaption(set: 3, forming: 0),
+          '3 stones set, one for each habit you have made automatic. Tap a '
+          'stone to see which.');
+    });
+    test('a mix', () {
+      expect(wallCaption(set: 1, forming: 2),
+          '1 stone set and 2 outlined (the habits you are working on now). '
+          'Tap a stone to see which.');
+    });
+  });
+
+  testWidgets('with two active habits and none graduated, the screen says two '
+      'outlined stones and a tap on one names its habit', (tester) async {
+    await tester.pumpWidget(_screen(active: [_active('a1'), _active('a2')]));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('None yet'), findsNothing);
+    expect(find.textContaining('2 outlined stones'), findsOneWidget);
+
+    // The first stone's cell sits at the wall's top-left.
+    final wall = tester.getTopLeft(find.byKey(const Key('wall-canvas')));
+    await tester.tapAt(wall + const Offset(12, 12));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Being set'), findsOneWidget);
+  });
+
   testWidgets('the wall renders with no stones', (tester) async {
     await tester.pumpWidget(_screen());
     await tester.pumpAndSettle();

@@ -13,6 +13,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lucide_flutter/lucide_flutter.dart';
+import 'package:bulwark/shared/widgets/undo_host.dart';
+import 'package:sanctuary_auth_core/sanctuary_auth_core.dart';
+import 'package:sanctuary_backup_ui/testing.dart';
 
 import '../../support/adoption_harness.dart';
 import '../../support/content_builders.dart';
@@ -40,6 +44,8 @@ Widget _home({
   List<ActiveHabit> eligible = const [],
   Profile? profile = _profile,
   double textScale = 1.0,
+  SecureKeyStore? keyStore,
+  List<Checkin> checkins = const [],
 }) {
   final router = GoRouter(
     initialLocation: '/',
@@ -55,7 +61,10 @@ Widget _home({
       activeHabitsProvider.overrideWith((ref) async => habits),
       graduationEligibleProvider.overrideWith((ref) async => eligible),
       profileProvider.overrideWith((ref) async => profile),
+      allCheckinsProvider.overrideWith((ref) async => checkins),
+      weakTriggerIdsProvider.overrideWith((ref) async => const {}),
       userPrefsProvider.overrideWith((ref) => Stream.value(const UserPrefs())),
+      ...backupOverrides(keyStore: keyStore),
     ],
     child: MaterialApp.router(
       theme: AppTheme.light,
@@ -70,6 +79,55 @@ Widget _home({
 }
 
 void main() {
+  testWidgets('day one teaches the loop: until the first check-in, Home says '
+      'what the daily job is', (tester) async {
+    await tester.pumpWidget(_home(habits: [_habit('sleep-window')]));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Your first day'), findsOneWidget);
+  });
+
+  testWidgets('after the first check-in the day-one line is gone',
+      (tester) async {
+    await tester.pumpWidget(_home(
+      habits: [_habit('sleep-window')],
+      checkins: [
+        Checkin(
+            interventionId: 'sleep-window',
+            date: DateTime(2026, 1, 2),
+            result: CheckinResult.did),
+      ],
+    ));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Your first day'), findsNothing);
+  });
+
+  testWidgets('Home shows the dismissible Finish setup line until backup is '
+      'set up', (tester) async {
+    await tester.pumpWidget(_home(habits: [_habit('sleep-window')]));
+    await tester.pumpAndSettle();
+    expect(find.textContaining("Backup isn't set up"), findsOneWidget);
+
+    await tester.tap(find.text('Dismiss'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining("Backup isn't set up"), findsNothing);
+  });
+
+  testWidgets('Home draws no setup line once backup is finished',
+      (tester) async {
+    await tester.pumpWidget(_home(
+      habits: [_habit('sleep-window')],
+      keyStore: InMemorySecureKeyStore(
+        mnemonic: 'abandon abandon abandon abandon abandon abandon abandon '
+            'abandon abandon abandon abandon about',
+        acknowledged: true,
+        lastBackupAt: DateTime.now(),
+      ),
+    ));
+    await tester.pumpAndSettle();
+    expect(find.textContaining("Backup isn't set up"), findsNothing);
+    expect(find.textContaining('Finish backup setup'), findsNothing);
+  });
+
   testWidgets('renders an active habit card with its evidence tag',
       (tester) async {
     await tester.pumpWidget(_home(habits: [_habit('sleep-window')]));
@@ -109,7 +167,7 @@ void main() {
     await tester.pumpWidget(_home(habits: [_habit('sleep-window')]));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byTooltip('Menu'));
+    await tester.tap(find.text('Menu'));
     await tester.pumpAndSettle();
     expect(find.text('Library'), findsOneWidget);
     expect(find.text('Queue'), findsOneWidget);
@@ -129,7 +187,7 @@ void main() {
     ));
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('set it into your wall'), findsOneWidget);
+    expect(find.textContaining('looks automatic now'), findsOneWidget);
     expect(find.widgetWithText(TextButton, 'Set it into my wall'),
         findsOneWidget);
     expect(find.widgetWithText(TextButton, 'Not yet'), findsOneWidget);
@@ -139,7 +197,7 @@ void main() {
     await tester.pumpWidget(_home(habits: [_habit('sleep-window')]));
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('set it into your wall'), findsNothing);
+    expect(find.textContaining('looks automatic now'), findsNothing);
   });
 
   testWidgets('"Not yet" dismisses the nudge without graduating',
@@ -153,7 +211,7 @@ void main() {
     await tester.tap(find.widgetWithText(TextButton, 'Not yet'));
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('set it into your wall'), findsNothing);
+    expect(find.textContaining('looks automatic now'), findsNothing);
     // The habit itself is untouched — still on Today.
     expect(find.text('sleep-window'), findsOneWidget);
   });
@@ -185,12 +243,19 @@ void main() {
     }
 
     await tester.pumpWidget(ProviderScope(
-      overrides: adoptionOverrides(db: db),
-      child: const MaterialApp(home: HomeScreen()),
+      overrides: [...adoptionOverrides(db: db), ...backupOverrides()],
+      child: MaterialApp(
+        builder: (context, child) => UndoHost(child: child!),
+        home: const HomeScreen(),
+      ),
     ));
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('set it into your wall'), findsOneWidget);
+    expect(find.textContaining('looks automatic now'), findsOneWidget);
+    // The offer says what graduating buys (audit badass-users-04), and is not
+    // dressed as a badge.
+    expect(find.textContaining('weekly check'), findsOneWidget);
+    expect(find.byIcon(LucideIcons.sparkles), findsNothing);
     await tester.tap(find.widgetWithText(TextButton, 'Set it into my wall'));
     await tester.pumpAndSettle();
 
@@ -204,6 +269,17 @@ void main() {
     final graduated =
         await HabitStateRepository(db).byStatus(HabitStatus.graduated);
     expect(graduated.map((s) => s.interventionId), contains('sleep-window'));
+    // The receipt says what it freed, and nothing earned can vanish by
+    // accident: Undo is offered, with no timer.
+    expect(find.textContaining('One fewer daily check-in'), findsOneWidget);
+    expect(find.text('Undo'), findsOneWidget);
+
+    // The card that asked is gone; Undo must not need it.
+    await tester.tap(find.text('Undo'));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect((await HabitStateRepository(db).byInterventionId('sleep-window'))!
+        .status, HabitStatus.active);
   });
 
   testWidgets('the graduation nudge holds at 320dp width and 3.0x text',
@@ -224,13 +300,13 @@ void main() {
     // the nudge un-inflated; scroll it in to actually lay it out at 320 dp and
     // catch any horizontal overflow.
     await tester.scrollUntilVisible(
-      find.textContaining('set it into your wall'),
+      find.textContaining('looks automatic now'),
       300,
       scrollable: find.byType(Scrollable).first,
     );
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('set it into your wall'), findsOneWidget);
+    expect(find.textContaining('looks automatic now'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

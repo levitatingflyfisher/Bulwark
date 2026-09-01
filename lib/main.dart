@@ -9,6 +9,7 @@ import 'package:bulwark/core/router/app_router.dart';
 import 'package:bulwark/features/sanctuary_backup/backup_config.dart';
 import 'package:bulwark/features/sanctuary_backup/data/backup_serializer.dart';
 import 'package:bulwark/shared/theme/app_theme.dart';
+import 'package:bulwark/shared/widgets/undo_host.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,6 +27,9 @@ void main() async {
         // core/auth/auth_state.dart stub types of the same name.
         sanctuary.sanctuaryAppDomainProvider.overrideWithValue('bulwark'),
         sanctuaryBackupConfigProvider.overrideWithValue(bulwarkBackupConfig),
+        // On web every fleet PWA shares one origin's localStorage; this gives
+        // Bulwark's recovery words their own names (native is unchanged).
+        appScopedKeyStoreOverride(),
         backupSerializerProvider.overrideWith(
           (ref) => BulwarkBackupSerializer(ref.watch(appDatabaseProvider)),
         ),
@@ -65,16 +69,11 @@ class _BulwarkAppState extends ConsumerState<BulwarkApp> {
       darkTheme: AppTheme.dark,
       themeMode: themeMode,
       routerConfig: router,
-      // On wide screens keep the single-column app centered at a comfortable
-      // reading width rather than stretching edge-to-edge (phones pass through).
-      builder: (context, child) {
-        final inner = child ?? const SizedBox.shrink();
-        if (MediaQuery.of(context).size.width <= 760) return inner;
-        return ColoredBox(
-          color: Theme.of(context).scaffoldBackgroundColor,
-          child: Center(child: SizedBox(width: 760, child: inner)),
-        );
-      },
+      // Each screen caps its own content width (OhPage), so the app bars
+      // still span the window while the column stays readable. The Undo bar
+      // for lifecycle changes lives under every screen.
+      builder: (context, child) =>
+          UndoHost(child: child ?? const SizedBox.shrink()),
     );
   }
 }

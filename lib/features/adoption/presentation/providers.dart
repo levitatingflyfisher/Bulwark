@@ -10,6 +10,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:bulwark/core/providers/core_providers.dart';
 import 'package:bulwark/features/adoption/data/checkin_repository.dart';
 import 'package:bulwark/features/adoption/data/habit_state_repository.dart';
+import 'package:bulwark/features/adoption/data/nudge_repository.dart';
 import 'package:bulwark/features/adoption/data/profile_repository.dart';
 import 'package:bulwark/features/adoption/data/pulse_repository.dart';
 import 'package:bulwark/features/adoption/data/shopping_repository.dart';
@@ -20,6 +21,7 @@ import 'package:bulwark/features/adoption/domain/habit_state.dart';
 import 'package:bulwark/features/adoption/domain/profile.dart';
 import 'package:bulwark/features/adoption/domain/pulse.dart';
 import 'package:bulwark/features/adoption/domain/shopping_state.dart';
+import 'package:bulwark/features/adoption/domain/weak_trigger.dart';
 import 'package:bulwark/features/library/data/content_loader.dart';
 import 'package:bulwark/features/library/domain/intervention.dart';
 import 'package:bulwark/shared/extensions/datetime_ext.dart';
@@ -52,6 +54,10 @@ CheckinRepository checkinRepository(Ref ref) =>
 @riverpod
 PulseRepository pulseRepository(Ref ref) =>
     PulseRepository(ref.watch(appDatabaseProvider));
+
+@riverpod
+NudgeRepository nudgeRepository(Ref ref) =>
+    NudgeRepository(ref.watch(appDatabaseProvider));
 
 @riverpod
 ShoppingRepository shoppingRepository(Ref ref) =>
@@ -159,6 +165,22 @@ Future<List<ActiveHabit>> queuedHabits(Ref ref) async {
   return habits;
 }
 
+/// Set-aside (paused) habits joined to their content, alphabetical by id. The
+/// Queue screen lists them so a habit set aside is never lost once its Undo
+/// offer has gone.
+@Riverpod(keepAlive: true)
+Future<List<ActiveHabit>> pausedHabits(Ref ref) async {
+  final library = await ref.watch(contentLibraryProvider.future);
+  final states =
+      await ref.watch(habitStateRepositoryProvider).byStatus(HabitStatus.paused);
+  return [
+    for (final s in states..sort((a, b) =>
+        a.interventionId.compareTo(b.interventionId)))
+      if (library.byIdOrNull(s.interventionId) case final i?)
+        ActiveHabit(state: s, intervention: i),
+  ];
+}
+
 /// Graduated habits joined to their shipped content, oldest-graduated first so
 /// the wall lays stones in the order they were set. A missing content id is
 /// skipped.
@@ -236,4 +258,21 @@ Future<List<ActiveHabit>> graduationEligible(Ref ref) async {
             now: now,
           ))
       .toList();
+}
+
+/// The active habits whose moment is not working ([WeakTriggerCheck]: a run
+/// of "Forgot" in the last two weeks), minus any whose offer was answered
+/// after those forgets. Home offers each a different moment.
+@Riverpod(keepAlive: true)
+Future<Set<String>> weakTriggerIds(Ref ref) async {
+  final active = await ref.watch(activeHabitsProvider.future);
+  final checkins = await ref.watch(allCheckinsProvider.future);
+  final acks = await ref.watch(nudgeRepositoryProvider).forgotAcks();
+  final weak = const WeakTriggerCheck()
+      .weakIds(checkins, now: DateTime.now(), since: acks);
+  return {
+    for (final h in active)
+      if (canHaveWeakTrigger(h.state) && weak.contains(h.interventionId))
+        h.interventionId,
+  };
 }

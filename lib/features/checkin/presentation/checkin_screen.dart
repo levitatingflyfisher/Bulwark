@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:openhearth_design/openhearth_design.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:bulwark/features/adoption/domain/checkin.dart';
@@ -7,14 +8,15 @@ import 'package:bulwark/features/adoption/domain/enums.dart';
 import 'package:bulwark/features/adoption/domain/pulse.dart';
 import 'package:bulwark/features/adoption/presentation/providers.dart';
 import 'package:bulwark/shared/extensions/datetime_ext.dart';
-import 'package:bulwark/shared/theme/app_colors.dart';
+import 'package:bulwark/shared/theme/app_palette.dart';
 import 'package:bulwark/shared/theme/app_spacing.dart';
 
 /// The daily check-in: one inline row per active habit — did / skipped /
 /// forgot — plus a weekly solid/shaky pulse for any graduated habit still owed
 /// one this week. Under thirty seconds, no modal per habit, kind on the way
-/// out. Re-checking a habit upserts on (interventionId, date), so today's row
-/// is corrected in place rather than duplicated.
+/// out. Each answer is saved as it is tapped (there is no Save to forget);
+/// re-checking a habit upserts on (interventionId, date), so today's row is
+/// corrected in place rather than duplicated. Done only goes back.
 class CheckinScreen extends ConsumerStatefulWidget {
   const CheckinScreen({super.key});
 
@@ -28,49 +30,83 @@ class _CheckinScreenState extends ConsumerState<CheckinScreen> {
   final Set<String> _notesOpen = {};
   final Map<String, PulseResult> _pulses = {};
   bool _seeded = false;
-  bool _saving = false;
 
-  Future<void> _submit() async {
-    if (_saving) return;
-    setState(() => _saving = true);
+  // Every answer is written the moment it is given (audit humane-interface-01:
+  // a day's answers used to live in widget state until a Save that the back
+  // gesture skipped). The repository upserts on (interventionId, date), so a
+  // changed mind corrects today's row in place.
 
-    final today = DateTime.now().dateOnly;
-    final weekStart = DateTime.now().startOfWeek;
-    final checkinRepo = ref.read(checkinRepositoryProvider);
-    final pulseRepo = ref.read(pulseRepositoryProvider);
-
-    for (final entry in _results.entries) {
-      await checkinRepo.upsert(Checkin(
-        interventionId: entry.key,
-        date: today,
-        result: entry.value,
-        note: _notes[entry.key]?.trim().isEmpty ?? true
-            ? null
-            : _notes[entry.key]!.trim(),
-      ));
-    }
-    for (final entry in _pulses.entries) {
-      await pulseRepo.upsert(Pulse(
-        interventionId: entry.key,
-        weekStart: weekStart,
-        result: entry.value,
-      ));
-    }
-
+  /// Refreshes the read models a write touches. Progress's erosion and
+  /// adherence models are keepAlive and outlive this screen, so they are
+  /// invalidated too, or a fresh answer would not reach the wall.
+  void _refreshReadModels() {
     ref.invalidate(todaysCheckinsProvider);
     ref.invalidate(pulseDueProvider);
-    // The Progress screen's erosion + adherence read models are keepAlive and
-    // outlive this write, so refresh them too — otherwise a freshly-logged pulse
-    // or check-in wouldn't surface on the wall until an app restart.
     ref.invalidate(allCheckinsProvider);
     ref.invalidate(allPulsesProvider);
-    await ref.read(todaysCheckinsProvider.future);
+  }
 
+  void _saveFailed(Object e, StackTrace st) {
+    debugPrint('Check-in write failed: $e\n$st');
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Logged. See you tomorrow.')),
-    );
-    context.go('/');
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('That answer didn’t save. ${ohFriendlyErrorMessage(e)}')));
+  }
+
+  Future<void> _writeCheckin(String id) async {
+    final result = _results[id];
+    if (result == null) return; // a note waits for its answer
+    final note = _notes[id]?.trim() ?? '';
+    await ref.read(checkinRepositoryProvider).upsert(Checkin(
+          interventionId: id,
+          date: DateTime.now().dateOnly,
+          result: result,
+          note: note.isEmpty ? null : note,
+        ));
+    _refreshReadModels();
+  }
+
+  Future<void> _answer(String id, CheckinResult r) async {
+    final before = _results[id];
+    setState(() => _results[id] = r);
+    try {
+      await _writeCheckin(id);
+    } catch (e, st) {
+      // Show what is actually stored, not what was tapped.
+      if (mounted) {
+        setState(() =>
+            before == null ? _results.remove(id) : _results[id] = before);
+      }
+      _saveFailed(e, st);
+    }
+  }
+
+  Future<void> _note(String id, String v) async {
+    _notes[id] = v;
+    try {
+      await _writeCheckin(id);
+    } catch (e, st) {
+      _saveFailed(e, st);
+    }
+  }
+
+  Future<void> _pulse(String id, PulseResult r) async {
+    final before = _pulses[id];
+    setState(() => _pulses[id] = r);
+    try {
+      await ref.read(pulseRepositoryProvider).upsert(Pulse(
+            interventionId: id,
+            weekStart: DateTime.now().startOfWeek,
+            result: r,
+          ));
+      _refreshReadModels();
+    } catch (e, st) {
+      if (mounted) {
+        setState(
+            () => before == null ? _pulses.remove(id) : _pulses[id] = before);
+      }
+      _saveFailed(e, st);
+    }
   }
 
   @override
@@ -91,36 +127,39 @@ class _CheckinScreenState extends ConsumerState<CheckinScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Check in')),
-      body: habitsAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            child: Text('Something went wrong.\n$e',
-                textAlign: TextAlign.center),
+      body: OhPage(
+        padding: EdgeInsets.zero,
+        child: habitsAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, st) => OhErrorState.fromError(
+            e,
+            stackTrace: st,
+            title: "Couldn’t load today’s habits",
+            onRetry: () => ref.invalidate(activeHabitsProvider),
           ),
+          data: (habits) {
+            final pulseDue = pulseDueAsync.valueOrNull ?? const [];
+            if (habits.isEmpty && pulseDue.isEmpty) {
+              return const _NothingToLog();
+            }
+            return _CheckinBody(
+              habits: habits,
+              pulseDue: pulseDue,
+              resultFor: (id) => _results[id],
+              onResult: _answer,
+              noteOpen: _notesOpen.contains,
+              noteFor: (id) => _notes[id] ?? '',
+              onToggleNote: (id) => setState(() => _notesOpen.contains(id)
+                  ? _notesOpen.remove(id)
+                  : _notesOpen.add(id)),
+              onNote: _note,
+              pulseFor: (id) => _pulses[id],
+              onPulse: _pulse,
+              // Nothing to commit: every answer is already saved.
+              onDone: () => context.go('/'),
+            );
+          },
         ),
-        data: (habits) {
-          final pulseDue = pulseDueAsync.valueOrNull ?? const [];
-          if (habits.isEmpty && pulseDue.isEmpty) {
-            return const _NothingToLog();
-          }
-          return _CheckinBody(
-            habits: habits,
-            pulseDue: pulseDue,
-            resultFor: (id) => _results[id],
-            onResult: (id, r) => setState(() => _results[id] = r),
-            noteOpen: _notesOpen.contains,
-            noteFor: (id) => _notes[id] ?? '',
-            onToggleNote: (id) => setState(() =>
-                _notesOpen.contains(id) ? _notesOpen.remove(id) : _notesOpen.add(id)),
-            onNote: (id, v) => _notes[id] = v,
-            pulseFor: (id) => _pulses[id],
-            onPulse: (id, r) => setState(() => _pulses[id] = r),
-            saving: _saving,
-            onSubmit: _submit,
-          );
-        },
       ),
     );
   }
@@ -138,8 +177,7 @@ class _CheckinBody extends StatelessWidget {
     required this.onNote,
     required this.pulseFor,
     required this.onPulse,
-    required this.saving,
-    required this.onSubmit,
+    required this.onDone,
   });
 
   final List<ActiveHabit> habits;
@@ -152,8 +190,7 @@ class _CheckinBody extends StatelessWidget {
   final void Function(String id, String v) onNote;
   final PulseResult? Function(String id) pulseFor;
   final void Function(String id, PulseResult r) onPulse;
-  final bool saving;
-  final VoidCallback onSubmit;
+  final VoidCallback onDone;
 
   @override
   Widget build(BuildContext context) {
@@ -181,7 +218,8 @@ class _CheckinBody extends StatelessWidget {
                 const SizedBox(height: AppSpacing.xs),
                 Text(
                   'A quick maintenance check on habits that are automatic now.',
-                  style: text.bodySmall?.copyWith(color: AppColors.stone),
+                  style: text.bodySmall?.copyWith(
+                      color: BulwarkPalette.of(context).secondaryText),
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 for (final habit in pulseDue)
@@ -202,8 +240,8 @@ class _CheckinBody extends StatelessWidget {
             child: SizedBox(
               width: double.infinity,
               child: FilledButton(
-                onPressed: saving ? null : onSubmit,
-                child: Text(saving ? 'Saving…' : 'Save'),
+                onPressed: onDone,
+                child: const Text('Done'),
               ),
             ),
           ),
@@ -252,19 +290,19 @@ class _HabitRow extends StatelessWidget {
               children: [
                 _ResultChip(
                   label: 'Did it',
-                  color: AppColors.lichen,
+                  color: BulwarkPalette.of(context).lichen,
                   selected: selected == CheckinResult.did,
                   onTap: () => onResult(CheckinResult.did),
                 ),
                 _ResultChip(
                   label: 'Skipped',
-                  color: AppColors.stone,
+                  color: BulwarkPalette.of(context).secondaryText,
                   selected: selected == CheckinResult.skipped,
                   onTap: () => onResult(CheckinResult.skipped),
                 ),
                 _ResultChip(
                   label: 'Forgot',
-                  color: AppColors.clay,
+                  color: BulwarkPalette.of(context).clay,
                   selected: selected == CheckinResult.forgot,
                   onTap: () => onResult(CheckinResult.forgot),
                 ),
@@ -284,7 +322,8 @@ class _HabitRow extends StatelessWidget {
                   ),
                 ),
               )
-            else
+            // A note belongs to an answer, so it is offered once there is one.
+            else if (selected != null)
               Align(
                 alignment: Alignment.centerLeft,
                 child: TextButton(
@@ -333,13 +372,13 @@ class _PulseRow extends StatelessWidget {
               children: [
                 _ResultChip(
                   label: 'Solid',
-                  color: AppColors.lichen,
+                  color: BulwarkPalette.of(context).lichen,
                   selected: selected == PulseResult.solid,
                   onTap: () => onPulse(PulseResult.solid),
                 ),
                 _ResultChip(
                   label: 'Shaky',
-                  color: AppColors.clay,
+                  color: BulwarkPalette.of(context).clay,
                   selected: selected == PulseResult.shaky,
                   onTap: () => onPulse(PulseResult.shaky),
                 ),
@@ -375,7 +414,10 @@ class _ResultChip extends StatelessWidget {
       showCheckmark: false,
       side: selected
           ? BorderSide(color: color)
-          : BorderSide(color: AppColors.stone.withValues(alpha: 0.4)),
+          : BorderSide(
+              color: BulwarkPalette.of(context)
+                  .secondaryText
+                  .withValues(alpha: 0.4)),
     );
   }
 }
@@ -391,7 +433,8 @@ class _NothingToLog extends StatelessWidget {
         padding: const EdgeInsets.all(AppSpacing.lg),
         child: Text(
           'Nothing to log yet.\nActivate a habit and it will appear here.',
-          style: text.bodyLarge?.copyWith(color: AppColors.stone),
+          style: text.bodyLarge
+              ?.copyWith(color: BulwarkPalette.of(context).secondaryText),
           textAlign: TextAlign.center,
         ),
       ),

@@ -29,7 +29,8 @@ void main() {
         createdAt: DateTime(2026, 1, 1),
       ));
 
-  Future<void> pumpCheckin(WidgetTester tester, {double textScale = 1.0}) async {
+  Future<GoRouter> pumpCheckin(WidgetTester tester,
+      {double textScale = 1.0, CheckinRepository? repo}) async {
     final router = GoRouter(
       initialLocation: '/checkin',
       routes: [
@@ -40,7 +41,10 @@ void main() {
       ],
     );
     await tester.pumpWidget(ProviderScope(
-      overrides: adoptionOverrides(db: db),
+      overrides: [
+        ...adoptionOverrides(db: db),
+        if (repo != null) checkinRepositoryProvider.overrideWithValue(repo),
+      ],
       child: MaterialApp.router(
         theme: AppTheme.light,
         routerConfig: router,
@@ -52,6 +56,7 @@ void main() {
       ),
     ));
     await tester.pumpAndSettle();
+    return router;
   }
 
   testWidgets('records "did it" and returns Home', (tester) async {
@@ -60,7 +65,7 @@ void main() {
 
     await tester.tap(find.widgetWithText(ChoiceChip, 'Did it'));
     await tester.pump();
-    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Done'));
     await tester.pumpAndSettle();
 
     final rows = await CheckinRepository(db).getAll();
@@ -71,13 +76,83 @@ void main() {
     expect(find.text('HOME'), findsOneWidget);
   });
 
+  testWidgets('each tap is saved as it happens: leave without Done, come '
+      'back, and the answers are there (persona T2)', (tester) async {
+    await activate('sleep-window');
+    await activate('eat-protein');
+    final router = await pumpCheckin(tester);
+
+    Finder chip(String habit, String label) => find.descendant(
+        of: find.ancestor(of: find.text(habit), matching: find.byType(Card)),
+        matching: find.widgetWithText(ChoiceChip, label));
+    await tester.tap(chip('sleep-window', 'Did it'));
+    await tester.pumpAndSettle();
+    await tester.tap(chip('eat-protein', 'Forgot'));
+    await tester.pumpAndSettle();
+
+    // Leave the way back does: no Done, no Save.
+    router.go('/');
+    await tester.pumpAndSettle();
+    expect(find.text('HOME'), findsOneWidget);
+
+    final rows = {
+      for (final c in await CheckinRepository(db).getAll())
+        c.interventionId: c.result
+    };
+    expect(rows, {
+      'sleep-window': CheckinResult.did,
+      'eat-protein': CheckinResult.forgot,
+    });
+
+    router.go('/checkin');
+    await tester.pumpAndSettle();
+    bool selected(String habit, String label) =>
+        tester.widget<ChoiceChip>(chip(habit, label)).selected;
+    expect(selected('sleep-window', 'Did it'), isTrue);
+    expect(selected('eat-protein', 'Forgot'), isTrue);
+  });
+
+  testWidgets('a note is saved with its answer as you type', (tester) async {
+    await activate('sleep-window');
+    await pumpCheckin(tester);
+
+    // No answer yet, so nowhere for a note to live: no Add note.
+    expect(find.text('Add note'), findsNothing);
+    await tester.tap(find.widgetWithText(ChoiceChip, 'Skipped'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Add note'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextFormField), 'late shift');
+    await tester.pumpAndSettle();
+
+    final row = (await CheckinRepository(db).getAll()).single;
+    expect(row.result, CheckinResult.skipped);
+    expect(row.note, 'late shift');
+  });
+
+  testWidgets('a tap that fails to save is undone on screen and says so',
+      (tester) async {
+    await activate('sleep-window');
+    await pumpCheckin(tester, repo: _FailingCheckinRepository(db));
+
+    await tester.tap(find.widgetWithText(ChoiceChip, 'Did it'));
+    await tester.pumpAndSettle();
+
+    expect(
+        tester
+            .widget<ChoiceChip>(find.widgetWithText(ChoiceChip, 'Did it'))
+            .selected,
+        isFalse);
+    expect(find.textContaining('didn’t save'), findsOneWidget);
+  });
+
   testWidgets('records "forgot"', (tester) async {
     await activate('sleep-window');
     await pumpCheckin(tester);
 
     await tester.tap(find.widgetWithText(ChoiceChip, 'Forgot'));
     await tester.pump();
-    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Done'));
     await tester.pumpAndSettle();
 
     final rows = await CheckinRepository(db).getAll();
@@ -97,7 +172,7 @@ void main() {
 
     await tester.tap(find.widgetWithText(ChoiceChip, 'Skipped'));
     await tester.pump();
-    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Done'));
     await tester.pumpAndSettle();
 
     final rows = await CheckinRepository(db).getAll();
@@ -119,7 +194,7 @@ void main() {
 
     await tester.tap(find.widgetWithText(ChoiceChip, 'Did it'));
     await tester.pump();
-    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Done'));
     await tester.pumpAndSettle();
 
     expect(await container.read(allCheckinsProvider.future), hasLength(1));
@@ -139,7 +214,7 @@ void main() {
     expect(find.text('Weekly pulse'), findsOneWidget);
     await tester.tap(find.widgetWithText(ChoiceChip, 'Solid'));
     await tester.pump();
-    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Done'));
     await tester.pumpAndSettle();
 
     final pulses = await PulseRepository(db).getAll();
@@ -165,4 +240,11 @@ void main() {
       expect(tester.takeException(), isNull);
     });
   }
+}
+
+class _FailingCheckinRepository extends CheckinRepository {
+  _FailingCheckinRepository(super.db);
+
+  @override
+  Future<void> upsert(Checkin c) async => throw StateError('disk full');
 }

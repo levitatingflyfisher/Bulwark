@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:bulwark/features/library/domain/enums.dart';
-import 'package:bulwark/shared/theme/app_colors.dart';
+import 'package:bulwark/shared/theme/app_palette.dart';
 
 /// A small, non-judgmental strength-of-evidence marker. Rendered as an inline
 /// dot + flexible label so it wraps rather than overflowing at large text
@@ -25,7 +25,7 @@ class EvidenceTag extends StatelessWidget {
     final style = Theme.of(context)
         .textTheme
         .labelSmall
-        ?.copyWith(color: AppColors.stone);
+        ?.copyWith(color: BulwarkPalette.of(context).secondaryText);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -35,8 +35,8 @@ class EvidenceTag extends StatelessWidget {
           child: Container(
             width: 6,
             height: 6,
-            decoration: const BoxDecoration(
-              color: AppColors.stone,
+            decoration: BoxDecoration(
+              color: BulwarkPalette.of(context).secondaryText,
               shape: BoxShape.circle,
             ),
           ),

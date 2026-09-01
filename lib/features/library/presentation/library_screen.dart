@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:openhearth_design/openhearth_design.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
@@ -10,8 +11,9 @@ import 'package:bulwark/features/library/domain/enums.dart';
 import 'package:bulwark/features/library/domain/intervention.dart';
 import 'package:bulwark/features/library/presentation/content_labels.dart';
 import 'package:bulwark/features/library/presentation/library_filter.dart';
-import 'package:bulwark/shared/theme/app_colors.dart';
+import 'package:bulwark/shared/theme/app_palette.dart';
 import 'package:bulwark/shared/theme/app_spacing.dart';
+import 'package:bulwark/shared/widgets/theme_toggle.dart';
 
 /// The full reference library: every shipped intervention, searchable and
 /// filterable. Read-only browsing — activating happens on the Detail screen.
@@ -49,94 +51,108 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     final profile = ref.watch(profileProvider).valueOrNull;
     if (!_seededThreshold && profile != null) {
       _seededThreshold = true;
-      _filters = _filters.copyWith(evidenceThreshold: profile.evidenceThreshold);
+      _filters =
+          _filters.copyWith(evidenceThreshold: profile.evidenceThreshold);
     }
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Library'),
         actions: [
-          IconButton(
-            tooltip: 'Filters',
-            onPressed: _openFacetSheet,
-            icon: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                const Icon(LucideIcons.slidersHorizontal),
-                if (_filters.hasFacets)
-                  const Positioned(
-                    right: -2,
-                    top: -2,
-                    child: CircleAvatar(
-                      radius: 4,
-                      backgroundColor: AppColors.lichen,
+          // Bar words stop growing at 2x, as ThemeToggle's do.
+          MediaQuery.withClampedTextScaling(
+            maxScaleFactor: 2.0,
+            child: TextButton.icon(
+              onPressed: _openFacetSheet,
+              style: TextButton.styleFrom(
+                foregroundColor: IconTheme.of(context).color,
+                iconColor: IconTheme.of(context).color,
+                minimumSize: const Size(48, 48),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+              ),
+              label: const Text('Filters'),
+              icon: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  const Icon(LucideIcons.slidersHorizontal),
+                  if (_filters.hasFacets)
+                    Positioned(
+                      right: -2,
+                      top: -2,
+                      child: CircleAvatar(
+                        radius: 4,
+                        backgroundColor: BulwarkPalette.of(context).lichen,
+                      ),
                     ),
-                  ),
-              ],
+                ],
+              ),
             ),
           ),
+          const ThemeToggle(),
         ],
       ),
-      body: libraryAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            child:
-                Text('Could not load content.\n$e', textAlign: TextAlign.center),
+      body: OhPage(
+        padding: EdgeInsets.zero,
+        child: libraryAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, st) => OhErrorState.fromError(
+            e,
+            stackTrace: st,
+            title: "Couldn’t open the library",
+            onRetry: () => ref.invalidate(contentLibraryProvider),
           ),
-        ),
-        data: (library) {
-          final results = filterInterventions(library, _filters);
-          return Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.md,
-                    AppSpacing.md, AppSpacing.sm),
-                child: TextField(
-                  controller: _searchController,
-                  onChanged: (v) =>
-                      setState(() => _filters = _filters.copyWith(query: v)),
-                  decoration: InputDecoration(
-                    hintText: 'Search habits',
-                    isDense: true,
-                    prefixIcon: const Icon(LucideIcons.search, size: 18),
-                    suffixIcon: _filters.query.isEmpty
-                        ? null
-                        : IconButton(
-                            icon: const Icon(LucideIcons.x, size: 18),
-                            onPressed: () {
-                              _searchController.clear();
-                              setState(() =>
-                                  _filters = _filters.copyWith(query: ''));
-                            },
-                          ),
-                    border: const OutlineInputBorder(),
+          data: (library) {
+            final results = filterInterventions(library, _filters);
+            return Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(AppSpacing.md,
+                      AppSpacing.md, AppSpacing.md, AppSpacing.sm),
+                  child: TextField(
+                    controller: _searchController,
+                    onChanged: (v) =>
+                        setState(() => _filters = _filters.copyWith(query: v)),
+                    decoration: InputDecoration(
+                      hintText: 'Search habits',
+                      isDense: true,
+                      prefixIcon: const Icon(LucideIcons.search, size: 18),
+                      suffixIcon: _filters.query.isEmpty
+                          ? null
+                          : IconButton(
+                              icon: const Icon(LucideIcons.x, size: 18),
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() =>
+                                    _filters = _filters.copyWith(query: ''));
+                              },
+                            ),
+                      border: const OutlineInputBorder(),
+                    ),
                   ),
                 ),
-              ),
-              _CategoryStrip(
-                selected: _filters.categories,
-                onToggle: (c) => setState(() {
-                  final next = Set<Category>.of(_filters.categories);
-                  next.contains(c) ? next.remove(c) : next.add(c);
-                  _filters = _filters.copyWith(categories: next);
-                }),
-              ),
-              Expanded(
-                child: results.isEmpty
-                    ? const _NoMatches()
-                    : ListView.builder(
-                        padding: const EdgeInsets.fromLTRB(AppSpacing.md,
-                            AppSpacing.sm, AppSpacing.md, AppSpacing.md),
-                        itemCount: results.length,
-                        itemBuilder: (_, i) =>
-                            _LibraryRow(intervention: results[i]),
-                      ),
-              ),
-            ],
-          );
-        },
+                _CategoryStrip(
+                  selected: _filters.categories,
+                  onToggle: (c) => setState(() {
+                    final next = Set<Category>.of(_filters.categories);
+                    next.contains(c) ? next.remove(c) : next.add(c);
+                    _filters = _filters.copyWith(categories: next);
+                  }),
+                ),
+                Expanded(
+                  child: results.isEmpty
+                      ? const _NoMatches()
+                      : ListView.builder(
+                          padding: const EdgeInsets.fromLTRB(AppSpacing.md,
+                              AppSpacing.sm, AppSpacing.md, AppSpacing.md),
+                          itemCount: results.length,
+                          itemBuilder: (_, i) =>
+                              _LibraryRow(intervention: results[i]),
+                        ),
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
@@ -199,11 +215,13 @@ class _LibraryRow extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis),
               const SizedBox(height: AppSpacing.xs),
+              // What the habit IS, so it reads as body text, whole
+              // (audit design-for-hackers-07); only the metadata below is
+              // secondary.
               Text(
                 intervention.action,
-                style: text.bodySmall?.copyWith(color: AppColors.stone),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
+                style: text.bodyMedium
+                    ?.copyWith(color: Theme.of(context).colorScheme.onSurface),
               ),
               const SizedBox(height: AppSpacing.sm),
               // Wrap keeps the metadata reflowing instead of overflowing at
@@ -239,11 +257,12 @@ class _MetaPill extends StatelessWidget {
       padding:
           const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 2),
       decoration: BoxDecoration(
-        color: AppColors.stone.withValues(alpha: 0.14),
+        color: BulwarkPalette.of(context).secondaryText.withValues(alpha: 0.14),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Text(label,
-          style: text.labelSmall?.copyWith(color: AppColors.ink)),
+          style: text.labelSmall
+              ?.copyWith(color: Theme.of(context).colorScheme.onSurface)),
     );
   }
 }
@@ -259,7 +278,8 @@ class _NoMatches extends StatelessWidget {
         padding: const EdgeInsets.all(AppSpacing.lg),
         child: Text(
           'Nothing matches those filters yet.\nTry widening them.',
-          style: text.bodyLarge?.copyWith(color: AppColors.stone),
+          style: text.bodyLarge
+              ?.copyWith(color: BulwarkPalette.of(context).secondaryText),
           textAlign: TextAlign.center,
         ),
       ),

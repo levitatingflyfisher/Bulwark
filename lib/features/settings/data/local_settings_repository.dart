@@ -1,12 +1,15 @@
 import 'package:bulwark/core/storage/app_database.dart' hide UserPrefs;
 import 'package:bulwark/features/settings/domain/settings_repository.dart';
 import 'package:bulwark/features/settings/domain/user_prefs.dart';
+import 'package:openhearth_design/openhearth_design.dart';
 
 class LocalSettingsRepository implements SettingsRepository {
   LocalSettingsRepository(this._db);
   final AppDatabase _db;
 
-  static const _kDarkMode = 'theme';
+  // A new key, not the old 'theme' light/dark string: no users yet, so
+  // there is nothing to migrate (operator, 2026-09-27).
+  static const _kThemeMode = 'theme_mode';
   static const _kReminders = 'reminders';
 
   Future<void> _set(String key, String value) => _db
@@ -28,15 +31,16 @@ class LocalSettingsRepository implements SettingsRepository {
       });
 
   @override
-  Future<void> setDarkMode(bool dark) =>
-      _set(_kDarkMode, dark ? 'dark' : 'light');
+  Future<void> setThemeMode(OhThemeModePreference mode) =>
+      _set(_kThemeMode, mode.storageValue);
 
   @override
   Future<void> setRemindersEnabled(bool enabled) =>
       _set(_kReminders, enabled ? 'on' : 'off');
 
   UserPrefs _fromMap(Map<String, String> map) => UserPrefs(
-        isDarkMode: map[_kDarkMode] == 'dark',
+        // Missing or unreadable → follow the phone.
+        themeMode: OhThemeModePreference.fromStorage(map[_kThemeMode]),
         // Absent → false: reminders stay opt-in until explicitly turned on.
         remindersEnabled: map[_kReminders] == 'on',
       );

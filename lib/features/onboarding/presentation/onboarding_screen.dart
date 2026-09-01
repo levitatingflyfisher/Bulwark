@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:openhearth_design/openhearth_design.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:bulwark/features/adoption/domain/enums.dart';
@@ -14,12 +15,15 @@ import 'package:bulwark/features/library/data/content_loader.dart';
 import 'package:bulwark/features/library/domain/content_library.dart';
 import 'package:bulwark/features/library/domain/intervention.dart';
 import 'package:bulwark/shared/extensions/datetime_ext.dart';
-import 'package:bulwark/shared/theme/app_colors.dart';
+import 'package:bulwark/shared/theme/app_palette.dart';
 import 'package:bulwark/shared/theme/app_spacing.dart';
 
-/// The three-step onboarding: acknowledge the disclaimer, map your day, then
-/// meet your starter pack. Matter-of-fact tone throughout — no hype, no
-/// pressure. The disclaimer gate blocks progress until acknowledged.
+/// The three-step onboarding: a welcome that states the disclaimer, map your
+/// day, then meet your starter pack. Matter-of-fact tone throughout, no hype,
+/// no pressure. The disclaimer is standing text, not a tick that must be
+/// operated before anything else works (fleet first-run ruling; audit
+/// humane-interface-03): the same sentence stands on Home, every detail card
+/// and About.
 class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
 
@@ -29,9 +33,6 @@ class OnboardingScreen extends ConsumerStatefulWidget {
 
 class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   int _step = 0;
-
-  // Step 1
-  bool _acknowledged = false;
 
   // Step 2 — lifestyle map. Sensible defaults so the form is always valid and
   // the user can proceed by adjusting only what matters to them.
@@ -159,15 +160,17 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   Widget build(BuildContext context) {
     final libraryAsync = ref.watch(contentLibraryProvider);
     return Scaffold(
-      body: SafeArea(
+      // OhPage brings its own SafeArea, and caps the steps at phone width
+      // on a tablet or in the browser.
+      body: OhPage(
+        padding: EdgeInsets.zero,
         child: libraryAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Center(
-            child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              child: Text('Could not load content.\n$e',
-                  textAlign: TextAlign.center),
-            ),
+          error: (e, st) => OhErrorState.fromError(
+            e,
+            stackTrace: st,
+            title: "Couldn’t open the habit library",
+            onRetry: () => ref.invalidate(contentLibraryProvider),
           ),
           data: (library) => _stepBody(library),
         ),
@@ -179,10 +182,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     switch (_step) {
       case 0:
         return _IntroStep(
-          acknowledged: _acknowledged,
-          onAcknowledgedChanged: (v) => setState(() => _acknowledged = v),
-          onContinue:
-              _acknowledged ? () => setState(() => _step = 1) : null,
+          onContinue: () => setState(() => _step = 1),
         );
       case 1:
         return _LifestyleStep(
@@ -231,15 +231,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 // ─── Step 1: intro + disclaimer ─────────────────────────────────────────────
 
 class _IntroStep extends StatelessWidget {
-  const _IntroStep({
-    required this.acknowledged,
-    required this.onAcknowledgedChanged,
-    required this.onContinue,
-  });
+  const _IntroStep({required this.onContinue});
 
-  final bool acknowledged;
-  final ValueChanged<bool> onAcknowledgedChanged;
-  final VoidCallback? onContinue;
+  final VoidCallback onContinue;
 
   @override
   Widget build(BuildContext context) {
@@ -269,31 +263,6 @@ class _IntroStep extends StatelessWidget {
                   'Bulwark is habit-tracking with health education, not medical '
                   'advice. For specific conditions, talk to a clinician.',
                   style: text.bodyMedium,
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                InkWell(
-                  onTap: () => onAcknowledgedChanged(!acknowledged),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Checkbox(
-                          value: acknowledged,
-                          onChanged: (v) => onAcknowledgedChanged(v ?? false),
-                        ),
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.only(top: 12),
-                            child: Text(
-                              'I understand this is not medical advice.',
-                              style: text.bodyMedium,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
                 ),
               ],
             ),
@@ -383,7 +352,7 @@ class _LifestyleStep extends StatelessWidget {
         Text(
           'Habits stick when they hang off things you already do. These anchor '
           'your habits to the right moments.',
-          style: text.bodyMedium?.copyWith(color: AppColors.stone),
+          style: text.bodyMedium?.copyWith(color: BulwarkPalette.of(context).secondaryText),
         ),
         const SizedBox(height: AppSpacing.md),
         _TimeField(label: 'Wake', value: _time(wake), onTap: onPickWake),
@@ -488,11 +457,11 @@ class _TimeField extends StatelessWidget {
             Flexible(
               child: Text(
                 value,
-                style: text.bodyLarge?.copyWith(color: AppColors.basalt),
+                style: text.bodyLarge?.copyWith(color: Theme.of(context).colorScheme.onSurface),
                 textAlign: TextAlign.right,
               ),
             ),
-            const Icon(Icons.schedule, size: 18, color: AppColors.stone),
+            Icon(Icons.schedule, size: 18, color: BulwarkPalette.of(context).secondaryText),
           ],
         ),
       ),
@@ -531,11 +500,11 @@ class _RevealStep extends StatelessWidget {
         const SizedBox(height: AppSpacing.xs),
         Text(
           n == 0
-              ? 'We could not find a match — you can add habits from the '
+              ? 'We could not find a match. You can add habits from the '
                   'Library once you are set up.'
               : 'All free. You can start tonight. Add more when these feel '
                   'automatic.',
-          style: text.bodyMedium?.copyWith(color: AppColors.stone),
+          style: text.bodyMedium?.copyWith(color: BulwarkPalette.of(context).secondaryText),
         ),
         const SizedBox(height: AppSpacing.md),
         for (final p in picks) ...[
@@ -567,7 +536,7 @@ class _PickCard extends StatelessWidget {
             const SizedBox(height: AppSpacing.sm),
             Text(
               intervention.trigger.note,
-              style: text.bodySmall?.copyWith(color: AppColors.stone),
+              style: text.bodySmall?.copyWith(color: BulwarkPalette.of(context).secondaryText),
             ),
             const SizedBox(height: AppSpacing.sm),
             EvidenceTag(intervention.evidence),

@@ -70,8 +70,11 @@ navigation. Forked from [Furrow](https://github.com/levitatingflyfisher/Furrow)
   between the shipped JSON and every drift row keyed by `interventionId`. A
   release must never repurpose an existing id for a different habit.
 - **Not medical advice, said everywhere it matters.** The onboarding
-  disclaimer gate, the Home check-in bar footer, every intervention detail
-  card, and the About screen all repeat this. Don't remove any of them.
+  welcome, the Home check-in bar footer, every intervention detail card, and
+  the About screen all repeat this. Don't remove any of them. It is standing
+  text, not a gate: the onboarding tick that held Continue was removed under
+  the fleet first-run ruling (open into the task; no control that must
+  always be operated), so don't bring a checkbox back.
 - **TDD, always.** Reproduce → failing test → fix → `flutter test` green →
   commit. Every bugfix ships with a regression test. The engine
   (`lib/features/adoption/domain/`) is pure — no DB, no widgets — so it stays
@@ -100,7 +103,7 @@ navigation. Forked from [Furrow](https://github.com/levitatingflyfisher/Furrow)
 | **Notifications** | `lib/features/notifications/notification_service.dart` (the interface) → `notification_service_io.dart` (Android, `flutter_local_notifications`) / `notification_service_web.dart` (genuine no-op), chosen by `notification_service_factory.dart`'s conditional import. Planning is pure: `notification_planner.dart` |
 | **Onboarding / Home / Check-in / Queue / Library / Detail / Shopping / Progress / Settings / About** | `lib/features/<feature>/presentation/` |
 | **Navigation / redirect gate** | `lib/core/router/app_router.dart` — every route redirects to `/onboarding` until `Profile.onboarded` is true |
-| **Theme / palette** | `lib/shared/theme/app_colors.dart` (basalt/mortar/lichen/clay/ink/stone — never red) |
+| **Theme / palette** | `lib/shared/theme/app_colors.dart` (basalt/mortar/lichen/clay/ink/stone tokens — never red) and `app_palette.dart` (`BulwarkPalette`, the per-brightness text-grade roles). Feature code reads `BulwarkPalette.of(context)` or the `ColorScheme`, never an `AppColors` constant; `test/shared/theme/contrast_test.dart` enforces that and the 4.5:1 floor in both themes |
 | **Data export / erase** | `lib/features/settings/data/export_serializer.dart` (`BulwarkExport`, schema-versioned JSON), `export_share*.dart` (io/web share-sheet), `lib/features/settings/presentation/settings_actions.dart` (`eraseAllData`) |
 | **Encrypted backup / restore** | `lib/features/sanctuary_backup/data/backup_serializer.dart` (`BulwarkBackupSerializer`, wraps `BulwarkExport`) + `lib/features/sanctuary_backup/backup_config.dart` (`bulwarkBackupConfig` — appId/AAD context/restore-consequence copy), overridden at the root `ProviderScope` in `lib/main.dart`; UI is the sibling-package `BackupSettingsSection` dropped into `settings_screen.dart`; `afterBackupRestore` (post-restore invalidation + reminder replan) lives in `settings_actions.dart`. Built on the sibling packages `../packages/sanctuary_auth_core` + `../packages/sanctuary_backup_ui` — see the README's sibling-clone note |
 | **Web shell / PWA** | `web/index.html`, `web/manifest.json` |
@@ -172,8 +175,11 @@ flutter run          # launch on a device / emulator / web
   — a drift query stream leaves a pending timer that trips widget-test
   teardown. Every write path calls `ref.invalidate(...)` on the relevant
   provider(s) and awaits the reload; if you add a new mutation, follow the
-  same pattern (see `checkin_screen.dart`'s `_submit` for the fullest
-  example — it invalidates four providers because Progress's erosion/
-  adherence read models are `keepAlive` and outlive the write).
+  same pattern (see `checkin_screen.dart`'s `_refreshReadModels` for the
+  fullest example — it invalidates four providers because Progress's
+  erosion/adherence read models are `keepAlive` and outlive the write).
+- **Check-in writes on every tap.** There is no Save: each answer, pulse
+  and note upserts as it is given, a failed write puts the chip back and
+  says so, and Done only navigates. Don't reintroduce a commit step.
 - **`test(` alone undercounts the suite** — widget tests use `testWidgets(`,
   so grep both if you need a real test count.

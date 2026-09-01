@@ -9,7 +9,7 @@ open.*
 Open the [PWA](https://levitatingflyfisher.github.io/Bulwark/) or install the
 sideloaded APK, then launch it. Onboarding is three short steps:
 
-1. **Read the disclaimer and check the box.** Bulwark is habit-tracking with
+1. **Read the welcome and the disclaimer.** Bulwark is habit-tracking with
    health education, not medical advice — you'll see this line again on
    every intervention card, so it isn't a one-time speed bump, it's a
    standing fact about the app.
@@ -30,6 +30,10 @@ sideloaded APK, then launch it. Onboarding is three short steps:
    told it you have. Tap **Start tonight** and they go active immediately —
    no separate "activate" step for the starter pack.
 
+You land on Home. Until your first check-in, the top of it says what the
+daily job is, and until you set up backup a dismissible line says your data
+is only on this device; neither blocks anything.
+
 ## Day 1–6: the daily check-in
 
 Each day, open the **Check in** button from Home. For every active habit
@@ -39,11 +43,15 @@ you'll see one row with three choices:
 - **Skipped** — you made a call not to, on purpose.
 - **Forgot** — the trigger didn't work; this is tracked separately from
   "skipped" because a repeated "forgot" is a signal the anchor needs
-  changing, not that you need more willpower.
+  changing, not that you need more willpower. After three forgets in two
+  weeks, that habit's card on Home offers **Change the moment** (or **Not
+  now**), so you can hang it off a moment that works.
 
-Tap a note under any row if you want to record why (optional, and it's
-yours — nothing leaves the device). The whole check-in is meant to take
-under thirty seconds. There is no streak counter anywhere on this screen —
+Each answer is saved the moment you tap it; there is no Save to forget, and
+leaving the screen any way you like keeps what you tapped. **Done** just
+takes you back. Once you've answered a row you can add a note if you want
+to record why (optional, and it's yours; nothing leaves the device). The
+whole check-in is meant to take under thirty seconds. There is no streak counter anywhere on this screen —
 missing a day is just a data point, not a broken chain.
 
 ## Somewhere in week two or three: the queue and the gate
@@ -70,7 +78,9 @@ automatic now," and it becomes a **stone** on the **Progress** screen's wall.
 Open Progress any time to see:
 
 - **The wall itself** — one stone per graduated habit, tap any stone for its
-  name and graduation date.
+  name and graduation date. The habits you're working on show as outlined
+  stones on top; tap one to see which it is and when you started it. The
+  line above the wall counts both.
 - **A weekly adherence trend** — bars, not a percentage of shame, showing
   the last few weeks.
 - **The "made automatic" list**, in case a picture of stones isn't specific

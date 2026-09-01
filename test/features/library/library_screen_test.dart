@@ -52,6 +52,18 @@ Widget _screen({double textScale = 1.0}) => ProviderScope(
     );
 
 void main() {
+  testWidgets('a row\'s action, the sentence that says what the habit is, '
+      'reads as body text in full, not as a truncated footnote', (tester) async {
+    await tester.pumpWidget(_screen());
+    await tester.pumpAndSettle();
+
+    final action = tester.widget<Text>(find.text('do sleep-window'));
+    final theme = AppTheme.light;
+    expect(action.maxLines, isNull);
+    expect(action.style!.fontSize, theme.textTheme.bodyMedium!.fontSize);
+    expect(action.style!.color, theme.colorScheme.onSurface);
+  });
+
   testWidgets('lists every intervention by default', (tester) async {
     await tester.pumpWidget(_screen());
     await tester.pumpAndSettle();
@@ -88,7 +100,7 @@ void main() {
     await tester.pumpWidget(_screen());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byTooltip('Filters'));
+    await tester.tap(find.text('Filters'));
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(ChoiceChip, 'Trials only'));
     await tester.pumpAndSettle();
@@ -124,7 +136,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Open the facet sheet — the Clear/Apply row is what overflowed at 320 dp.
-      await tester.tap(find.byTooltip('Filters'));
+      await tester.tap(find.text('Filters'));
       await tester.pumpAndSettle();
 
       expect(find.widgetWithText(FilledButton, 'Apply'), findsOneWidget);

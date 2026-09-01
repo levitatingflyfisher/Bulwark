@@ -3,12 +3,51 @@
 // keepAlive read model, then await the (now-null) profile so the router's
 // redirect is ready to bounce back to onboarding before the caller navigates.
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sanctuary_backup_ui/sanctuary_backup_ui.dart';
 
 import 'package:bulwark/core/providers/core_providers.dart';
 import 'package:bulwark/features/adoption/domain/notification_planner.dart';
 import 'package:bulwark/features/adoption/presentation/providers.dart';
 import 'package:bulwark/features/library/data/content_loader.dart';
 import 'package:bulwark/features/notifications/notification_providers.dart';
+
+/// What "Erase all data" did.
+enum EraseOutcome {
+  /// A verified safety copy is in Previous backups; restoring it undoes the
+  /// erase.
+  erasedWithSafetyCopy,
+
+  /// No recovery words, so no copy could be sealed; the person agreed in a
+  /// dialog that said there is no way back.
+  erasedNoCopy,
+
+  /// The safety copy failed, so nothing was erased.
+  keptBecauseSnapshotFailed,
+}
+
+/// The erase, behind sanctuary_backup_ui's pre-wipe snapshot: wipe only once
+/// a verified copy of the current data is in the vault, never after the copy
+/// failed. With no recovery words there is no copy to take, and the wipe goes
+/// ahead only if the person was told so ([promisedCopy] false): someone who
+/// agreed to an erase with a safety copy did not agree to one without.
+Future<EraseOutcome> eraseAfterSnapshot({
+  required Future<PreWipeSnapshot> Function() snapshot,
+  required Future<void> Function() wipe,
+  required bool promisedCopy,
+}) async {
+  final snap = await snapshot();
+  switch (snap.outcome) {
+    case PreWipeOutcome.taken:
+      await wipe();
+      return EraseOutcome.erasedWithSafetyCopy;
+    case PreWipeOutcome.noKey:
+      if (promisedCopy) return EraseOutcome.keptBecauseSnapshotFailed;
+      await wipe();
+      return EraseOutcome.erasedNoCopy;
+    case PreWipeOutcome.failed:
+      return EraseOutcome.keptBecauseSnapshotFailed;
+  }
+}
 
 /// Erase every habit, check-in, pulse, shopping state, and the profile, then
 /// cancel all reminders. Shell prefs (theme, reminders switch) survive. The

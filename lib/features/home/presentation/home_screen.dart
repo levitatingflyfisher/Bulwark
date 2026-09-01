@@ -1,17 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:openhearth_design/openhearth_design.dart';
+import 'package:sanctuary_backup_ui/sanctuary_backup_ui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
 import 'package:bulwark/features/adoption/domain/profile.dart';
 import 'package:bulwark/features/adoption/presentation/habit_actions.dart';
 import 'package:bulwark/features/adoption/presentation/providers.dart';
+import 'package:bulwark/features/library/presentation/content_labels.dart';
+import 'package:bulwark/features/adoption/domain/weak_trigger.dart';
 import 'package:bulwark/features/adoption/presentation/widgets/evidence_tag.dart';
 import 'package:bulwark/features/library/domain/enums.dart';
 import 'package:bulwark/features/library/domain/intervention.dart';
-import 'package:bulwark/shared/theme/app_colors.dart';
+import 'package:bulwark/shared/theme/app_palette.dart';
 import 'package:bulwark/shared/theme/app_spacing.dart';
-import 'package:bulwark/shared/widgets/theme_pill.dart';
+import 'package:bulwark/shared/widgets/theme_toggle.dart';
+import 'package:bulwark/shared/widgets/undo_host.dart';
 
 /// Today: the active habits as calm cards, a subtle next-up hint, and a
 /// prominent Check-in. No streaks, no counts, no guilt — missed days are data,
@@ -31,6 +36,13 @@ class HomeScreen extends ConsumerWidget {
           const <ActiveHabit>[])
         h.interventionId,
     };
+    // Habits whose moment keeps not working (a run of "Forgot"); Home offers
+    // each a different moment. Best-effort like the graduation nudge.
+    final weakIds = ref.watch(weakTriggerIdsProvider).valueOrNull ?? const {};
+    // Day one teaches the loop until the first answer is logged (audit: "day
+    // one teaches nothing"; first-run ruling: open into the task).
+    final firstDay =
+        ref.watch(allCheckinsProvider).valueOrNull?.isEmpty ?? false;
 
     return Scaffold(
       appBar: AppBar(
@@ -38,19 +50,29 @@ class HomeScreen extends ConsumerWidget {
         centerTitle: false,
         actions: const [
           _NavMenu(),
-          Padding(padding: EdgeInsets.only(right: 8), child: ThemePill()),
+          ThemeToggle(),
         ],
       ),
-      body: habitsAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => _ErrorBody(error: e),
-        data: (habits) => habits.isEmpty
-            ? const _EmptyBody()
-            : _TodayBody(
-                habits: habits,
-                profile: profile,
-                eligibleIds: eligibleIds,
-              ),
+      body: OhPage(
+        padding: EdgeInsets.zero,
+        child: habitsAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, st) => OhErrorState.fromError(
+            e,
+            stackTrace: st,
+            title: "Couldn’t load today’s habits",
+            onRetry: () => ref.invalidate(activeHabitsProvider),
+          ),
+          data: (habits) => habits.isEmpty
+              ? const _EmptyBody()
+              : _TodayBody(
+                  habits: habits,
+                  profile: profile,
+                  eligibleIds: eligibleIds,
+                  weakIds: weakIds,
+                  firstDay: firstDay,
+                ),
+        ),
       ),
     );
   }
@@ -64,17 +86,38 @@ class _NavMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return PopupMenuButton<String>(
-      icon: const Icon(LucideIcons.menu),
-      tooltip: 'Menu',
-      onSelected: (route) => context.push(route),
-      itemBuilder: (_) => const [
-        PopupMenuItem(value: '/library', child: Text('Library')),
-        PopupMenuItem(value: '/queue', child: Text('Queue')),
-        PopupMenuItem(value: '/shopping', child: Text('Shopping')),
-        PopupMenuItem(value: '/progress', child: Text('Progress')),
-        PopupMenuItem(value: '/settings', child: Text('Settings')),
-      ],
+    // Icon plus a visible word (fleet ruling: a tooltip is never a command's
+    // only name). The bar's foreground colours both.
+    final color = IconTheme.of(context).color;
+    // Bar words stop growing at 2x (still the 200% WCAG asks for) so the
+    // title keeps room at 320 dp and 3x text.
+    return MediaQuery.withClampedTextScaling(
+      maxScaleFactor: 2.0,
+      child: PopupMenuButton<String>(
+        tooltip: 'Go to a section',
+        onSelected: (route) => context.push(route),
+        child: SizedBox(
+          height: 48,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(LucideIcons.menu, color: color),
+                const SizedBox(width: 8),
+                Text('Menu', style: TextStyle(color: color)),
+              ],
+            ),
+          ),
+        ),
+        itemBuilder: (_) => const [
+          PopupMenuItem(value: '/library', child: Text('Library')),
+          PopupMenuItem(value: '/queue', child: Text('Queue')),
+          PopupMenuItem(value: '/shopping', child: Text('Shopping')),
+          PopupMenuItem(value: '/progress', child: Text('Progress')),
+          PopupMenuItem(value: '/settings', child: Text('Settings')),
+        ],
+      ),
     );
   }
 }
@@ -84,11 +127,15 @@ class _TodayBody extends StatelessWidget {
     required this.habits,
     required this.profile,
     required this.eligibleIds,
+    this.weakIds = const {},
+    this.firstDay = false,
   });
 
   final List<ActiveHabit> habits;
   final Profile? profile;
   final Set<String> eligibleIds;
+  final Set<String> weakIds;
+  final bool firstDay;
 
   @override
   Widget build(BuildContext context) {
@@ -102,21 +149,35 @@ class _TodayBody extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(
                 AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.sm),
             children: [
+              // Unfinished backup setup stays in sight, dismissible, never a
+              // gate (fleet first-run ruling); it scrolls with the day's
+              // cards and draws nothing once backup is set up.
+              const BackupSetupReminder(),
+              if (firstDay) ...[
+                Text(
+                  'Your first day: do each habit when its moment comes. '
+                  'Tonight, tap Check in and mark each one. That is the whole '
+                  'daily job, and it takes under a minute.',
+                  style: text.bodyMedium,
+                ),
+                const SizedBox(height: AppSpacing.sm),
+              ],
               if (nextUp != null) ...[
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Padding(
-                      padding: EdgeInsets.only(top: 2),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2),
                       child: Icon(LucideIcons.arrowRight,
-                          size: 16, color: AppColors.stone),
+                          size: 16,
+                          color: BulwarkPalette.of(context).secondaryText),
                     ),
                     const SizedBox(width: AppSpacing.xs),
                     Expanded(
                       child: Text(
                         'Next up: $nextUp',
-                        style:
-                            text.labelMedium?.copyWith(color: AppColors.stone),
+                        style: text.labelMedium?.copyWith(
+                            color: BulwarkPalette.of(context).secondaryText),
                       ),
                     ),
                   ],
@@ -131,6 +192,7 @@ class _TodayBody extends StatelessWidget {
                   habit: habit,
                   graduationEligible:
                       eligibleIds.contains(habit.interventionId),
+                  weakTrigger: weakIds.contains(habit.interventionId),
                 ),
             ],
           ),
@@ -162,7 +224,7 @@ class _TodayBody extends StatelessWidget {
     ActiveHabit? best;
     int? bestDelta;
     for (final h in habits) {
-      final m = anchorMinutes(h.intervention.trigger.anchor);
+      final m = anchorMinutes(effectiveAnchor(h.state, h.intervention));
       if (m == null) continue;
       final delta = (m - nowMinutes + 1440) % 1440; // minutes until, wrapping
       if (bestDelta == null || delta < bestDelta) {
@@ -175,16 +237,25 @@ class _TodayBody extends StatelessWidget {
 }
 
 class _HabitCard extends StatelessWidget {
-  const _HabitCard(
-      {super.key, required this.habit, this.graduationEligible = false});
+  const _HabitCard({
+    super.key,
+    required this.habit,
+    this.graduationEligible = false,
+    this.weakTrigger = false,
+  });
 
   final ActiveHabit habit;
   final bool graduationEligible;
+  final bool weakTrigger;
 
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final Intervention i = habit.intervention;
+    // Once the person has moved the habit to another moment, the content's
+    // cue sentence describes the old one, so the card names the new moment.
+    final moved = habit.state.triggerAnchorOverride != null &&
+        effectiveAnchor(habit.state, i) != i.trigger.anchor;
     return Card(
       margin: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: Padding(
@@ -199,16 +270,20 @@ class _HabitCard extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Padding(
-                  padding: EdgeInsets.only(top: 2),
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
                   child: Icon(LucideIcons.anchor,
-                      size: 14, color: AppColors.stone),
+                      size: 14,
+                      color: BulwarkPalette.of(context).secondaryText),
                 ),
                 const SizedBox(width: AppSpacing.xs),
                 Expanded(
                   child: Text(
-                    i.trigger.note,
-                    style: text.bodySmall?.copyWith(color: AppColors.stone),
+                    moved
+                        ? anchorLabel(effectiveAnchor(habit.state, i))
+                        : i.trigger.note,
+                    style: text.bodySmall?.copyWith(
+                        color: BulwarkPalette.of(context).secondaryText),
                   ),
                 ),
               ],
@@ -216,12 +291,19 @@ class _HabitCard extends StatelessWidget {
             const SizedBox(height: AppSpacing.xs),
             Text(
               i.mechanism,
-              style: text.bodySmall?.copyWith(color: AppColors.stone),
+              style: text.bodySmall
+                  ?.copyWith(color: BulwarkPalette.of(context).secondaryText),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(height: AppSpacing.sm),
             EvidenceTag(i.evidence),
+            if (weakTrigger)
+              _MomentNudge(
+                interventionId: habit.interventionId,
+                title: i.title,
+                current: effectiveAnchor(habit.state, i),
+              ),
             if (graduationEligible)
               _GraduationNudge(
                 interventionId: habit.interventionId,
@@ -234,8 +316,116 @@ class _HabitCard extends StatelessWidget {
   }
 }
 
+/// Offered when a habit keeps being marked "Forgot": the moment may be the
+/// problem, not the person, so it offers to hang the habit off another one
+/// (audit writing-is-designing-09). Choosing one writes the override the
+/// reminder planner already honours, with Undo; "Not now" waves it off until
+/// new forgets arrive. Never a scolding, and no count shown as a score.
+class _MomentNudge extends ConsumerWidget {
+  const _MomentNudge({
+    required this.interventionId,
+    required this.title,
+    required this.current,
+  });
+
+  final String interventionId;
+  final String title;
+  final Anchor current;
+
+  Future<void> _change(BuildContext context, WidgetRef ref) async {
+    final picked = await showModalBottomSheet<Anchor>(
+      context: context,
+      isScrollControlled: true,
+      builder: (sheetContext) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.xs),
+              child: Text('Hang $title off a different moment',
+                  style: Theme.of(sheetContext).textTheme.titleMedium),
+            ),
+            for (final a in reanchorMoments)
+              ListTile(
+                title: Text(anchorLabel(a)),
+                trailing: a == current ? const Icon(Icons.check) : null,
+                onTap: () => Navigator.of(sheetContext).pop(a),
+              ),
+          ],
+        ),
+      ),
+    );
+    if (picked == null || picked == current) return;
+    final undo = ref.read(undoControllerProvider);
+    final actions = ref.read(habitActionsProvider);
+    final prior = await setTriggerAnchor(ref, interventionId, picked);
+    undo.show(
+      message: '$title now hangs off a new moment: '
+          '${anchorLabel(picked).toLowerCase()}.',
+      onUndo: () => actions.restore(interventionId, prior),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final text = Theme.of(context).textTheme;
+    final palette = BulwarkPalette.of(context);
+    return Container(
+      margin: const EdgeInsets.only(top: AppSpacing.sm),
+      padding: const EdgeInsets.all(AppSpacing.sm),
+      decoration: BoxDecoration(
+        color: palette.clay.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Icon(LucideIcons.clock, size: 16, color: palette.clay),
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              Expanded(
+                child: Text(
+                  'You’ve marked this Forgot ${WeakTriggerCheck.minForgets} '
+                  'times or more in two weeks. The moment may be the '
+                  'problem, not you. Try a different one?',
+                  style: text.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurface),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Wrap(
+            spacing: AppSpacing.sm,
+            children: [
+              TextButton(
+                onPressed: () => _change(context, ref),
+                style: TextButton.styleFrom(foregroundColor: palette.clay),
+                child: const Text('Change the moment'),
+              ),
+              TextButton(
+                onPressed: () => ackForgotNudge(ref, interventionId),
+                style: TextButton.styleFrom(
+                    foregroundColor: palette.secondaryText),
+                child: const Text('Not now'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 /// A quiet, dismissible affordance offered on an active habit the detector
-/// judges automatic. It is a reward, never a prod: the user either sets the
+/// judges automatic. It says what graduating frees up rather than dressing
+/// it as a badge, and it is never a prod: the user either sets the
 /// habit into their wall (an explicit confirm — graduation is never automatic)
 /// or waves it off with "Not yet". Laid out to hold at 320 dp × 3.0× text —
 /// the label wraps freely and the two actions Wrap onto their own lines rather
@@ -257,15 +447,23 @@ class _GraduationNudgeState extends ConsumerState<_GraduationNudge> {
   Future<void> _graduate() async {
     if (_busy) return;
     setState(() => _busy = true);
+    // Read before the await: graduating takes this card off Today.
+    final undo = ref.read(undoControllerProvider);
+    final actions = ref.read(habitActionsProvider);
+    final id = widget.interventionId;
     try {
-      await graduateHabit(ref, widget.interventionId);
+      final prior = await graduateHabit(ref, id);
+      undo.show(
+        // Say what the stone buys (audit badass-users-04): the habit leaves
+        // the daily list and the promotion gate counts one fewer.
+        message: '${widget.title} is set into your wall. One fewer daily '
+            'check-in; a weekly check keeps it standing, and there is room '
+            'for your next habit.',
+        onUndo: () => actions.restore(id, prior),
+      );
     } finally {
       if (mounted) setState(() => _busy = false);
     }
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${widget.title} is set into your wall.')),
-    );
   }
 
   @override
@@ -276,7 +474,7 @@ class _GraduationNudgeState extends ConsumerState<_GraduationNudge> {
       margin: const EdgeInsets.only(top: AppSpacing.sm),
       padding: const EdgeInsets.all(AppSpacing.sm),
       decoration: BoxDecoration(
-        color: AppColors.lichen.withValues(alpha: 0.10),
+        color: BulwarkPalette.of(context).lichen.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
@@ -285,16 +483,19 @@ class _GraduationNudgeState extends ConsumerState<_GraduationNudge> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Padding(
-                padding: EdgeInsets.only(top: 2),
-                child: Icon(LucideIcons.sparkles,
-                    size: 16, color: AppColors.lichen),
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Icon(LucideIcons.brickWall,
+                    size: 16, color: BulwarkPalette.of(context).lichen),
               ),
               const SizedBox(width: AppSpacing.xs),
               Expanded(
                 child: Text(
-                  'This looks automatic now — set it into your wall?',
-                  style: text.bodySmall?.copyWith(color: AppColors.ink),
+                  'This looks automatic now. Set it into your wall? It leaves '
+                  'your daily check-in for a weekly check, and frees a place '
+                  'for the next habit.',
+                  style: text.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurface),
                 ),
               ),
             ],
@@ -306,8 +507,9 @@ class _GraduationNudgeState extends ConsumerState<_GraduationNudge> {
               TextButton(
                 onPressed: _busy ? null : _graduate,
                 style: TextButton.styleFrom(
-                  foregroundColor: AppColors.lichen,
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+                  foregroundColor: BulwarkPalette.of(context).lichen,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
                   minimumSize: const Size(0, 36),
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
@@ -317,8 +519,9 @@ class _GraduationNudgeState extends ConsumerState<_GraduationNudge> {
                 onPressed:
                     _busy ? null : () => setState(() => _dismissed = true),
                 style: TextButton.styleFrom(
-                  foregroundColor: AppColors.stone,
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+                  foregroundColor: BulwarkPalette.of(context).secondaryText,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
                   minimumSize: const Size(0, 36),
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
@@ -357,7 +560,8 @@ class _CheckInBar extends StatelessWidget {
             Text(
               'Bulwark is habit-tracking with health education, not medical '
               'advice.',
-              style: text.labelSmall?.copyWith(color: AppColors.stone),
+              style: text.labelSmall
+                  ?.copyWith(color: BulwarkPalette.of(context).secondaryText),
               textAlign: TextAlign.center,
             ),
           ],
@@ -379,6 +583,7 @@ class _EmptyBody extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            const BackupSetupReminder(),
             Text(
               'Your wall starts with one stone.',
               style: text.headlineSmall,
@@ -387,7 +592,8 @@ class _EmptyBody extends StatelessWidget {
             const SizedBox(height: AppSpacing.sm),
             Text(
               'Add a habit from the Library.',
-              style: text.bodyLarge?.copyWith(color: AppColors.stone),
+              style: text.bodyLarge
+                  ?.copyWith(color: BulwarkPalette.of(context).secondaryText),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppSpacing.lg),
@@ -397,23 +603,6 @@ class _EmptyBody extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _ErrorBody extends StatelessWidget {
-  const _ErrorBody({required this.error});
-
-  final Object error;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Text('Something went wrong.\n$error',
-            textAlign: TextAlign.center),
       ),
     );
   }

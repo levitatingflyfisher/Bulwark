@@ -4,8 +4,11 @@
 // reordered (see the data layer's row↔domain mapping).
 
 /// Lifecycle of a habit as the user adopts, sustains, or sets it aside.
-/// Stored as its `.index` (queued 0 … paused 4).
-enum HabitStatus { queued, active, graduated, retired, paused }
+/// Stored as its `.index` (queued 0, active 1, graduated 2, paused 3).
+/// `paused` is "set aside": off Today, kept with all its fields, one tap from
+/// active again. (A `retired` state was declared and never written; it was
+/// removed before any install existed, which is why paused moved from 4.)
+enum HabitStatus { queued, active, graduated, paused }
 
 /// A single day's self-report for an active habit. Stored as its `.index`
 /// (did 0, skipped 1, forgot 2). `forgot` is a miss that also signals a weak

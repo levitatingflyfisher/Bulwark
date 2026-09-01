@@ -140,7 +140,7 @@ void main() {
     // The throw must leave the button usable again, not stuck disabled, and
     // surface a calm message rather than an uncaught error.
     expect(activateButton().onPressed, isNotNull);
-    expect(find.textContaining('Something went wrong'), findsOneWidget);
+    expect(find.textContaining('That didn’t save.'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

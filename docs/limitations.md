@@ -80,6 +80,17 @@ the [Vision scorecard](../VISION.md#honest-scorecard-built-vs-deferred).
   remote-content-update mechanism; a new intervention or a corrected safety
   note requires a new app release.
 
+## Undo
+
+- **Undo lasts until you act, not until a timer.** Activating, queueing,
+  setting aside, setting a stone into the wall and repointing each happen
+  at once and offer Undo in a bar under every screen. The offer stays until
+  you tap Undo, dismiss it, or make another change; after that the change
+  stands (make the opposite change to reverse it). Only the most recent
+  change can be undone.
+- **Erase all data is the exception.** It asks first; with backup set up,
+  its way back is the safety copy in Previous backups.
+
 ## Platform notes
 
 - **Golden tests are environment-sensitive.** Font rasterization differs

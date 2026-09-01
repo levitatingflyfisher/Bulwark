@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:openhearth_design/openhearth_design.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
@@ -7,8 +8,9 @@ import 'package:bulwark/features/adoption/presentation/providers.dart';
 import 'package:bulwark/features/library/domain/enums.dart';
 import 'package:bulwark/features/library/domain/intervention.dart';
 import 'package:bulwark/features/library/presentation/content_labels.dart';
-import 'package:bulwark/shared/theme/app_colors.dart';
+import 'package:bulwark/shared/theme/app_palette.dart';
 import 'package:bulwark/shared/theme/app_spacing.dart';
+import 'package:bulwark/shared/widgets/theme_toggle.dart';
 
 /// One shoppable need: the intervention it belongs to and its generic criteria.
 class _ShopNeed {
@@ -45,14 +47,20 @@ class _ShoppingScreenState extends ConsumerState<ShoppingScreen> {
     final purchased = ref.watch(shoppingStatesProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Shopping')),
-      body: (active.isLoading || queued.isLoading)
-          ? const Center(child: CircularProgressIndicator())
-          : _list(
-              active.valueOrNull ?? const [],
-              queued.valueOrNull ?? const [],
-              purchased.valueOrNull ?? const {},
-            ),
+      appBar: AppBar(
+        title: const Text('Shopping'),
+        actions: const [ThemeToggle()],
+      ),
+      body: OhPage(
+        padding: EdgeInsets.zero,
+        child: (active.isLoading || queued.isLoading)
+            ? const Center(child: CircularProgressIndicator())
+            : _list(
+                active.valueOrNull ?? const [],
+                queued.valueOrNull ?? const [],
+                purchased.valueOrNull ?? const {},
+              ),
+      ),
     );
   }
 
@@ -93,9 +101,9 @@ class _ShoppingScreenState extends ConsumerState<ShoppingScreen> {
     if (needs.isEmpty) return const [];
     final widgets = <Widget>[
       Padding(
-        padding: const EdgeInsets.only(top: AppSpacing.sm, bottom: AppSpacing.sm),
-        child: Text(title,
-            style: Theme.of(context).textTheme.titleMedium),
+        padding:
+            const EdgeInsets.only(top: AppSpacing.sm, bottom: AppSpacing.sm),
+        child: Text(title, style: Theme.of(context).textTheme.titleMedium),
       ),
     ];
     for (final where in ShopWhere.values) {
@@ -107,7 +115,7 @@ class _ShoppingScreenState extends ConsumerState<ShoppingScreen> {
             style: Theme.of(context)
                 .textTheme
                 .labelMedium
-                ?.copyWith(color: AppColors.stone)),
+                ?.copyWith(color: BulwarkPalette.of(context).secondaryText)),
       ));
       for (final need in inWhere) {
         widgets.add(_ShopRow(
@@ -160,16 +168,17 @@ class _ShopRow extends StatelessWidget {
                       Text(
                         need.shopping.item,
                         style: text.titleSmall?.copyWith(
-                          color: muted ? AppColors.stone : AppColors.ink,
-                          decoration:
-                              muted ? TextDecoration.lineThrough : null,
+                          color: muted
+                              ? BulwarkPalette.of(context).secondaryText
+                              : Theme.of(context).colorScheme.onSurface,
+                          decoration: muted ? TextDecoration.lineThrough : null,
                         ),
                       ),
                       const SizedBox(height: AppSpacing.xs),
                       Text(
                         need.shopping.criteria,
-                        style:
-                            text.bodySmall?.copyWith(color: AppColors.stone),
+                        style: text.bodySmall?.copyWith(
+                            color: BulwarkPalette.of(context).secondaryText),
                       ),
                     ],
                   ),
@@ -195,8 +204,8 @@ class _EmptyShopping extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(LucideIcons.shoppingBasket,
-                size: 40, color: AppColors.stone),
+            Icon(LucideIcons.shoppingBasket,
+                size: 40, color: BulwarkPalette.of(context).secondaryText),
             const SizedBox(height: AppSpacing.md),
             Text('Nothing to buy.',
                 style: text.headlineSmall, textAlign: TextAlign.center),
@@ -204,7 +213,8 @@ class _EmptyShopping extends StatelessWidget {
             Text(
               'Your current habits need no supplies. Anything you add that does '
               'will show up here.',
-              style: text.bodyLarge?.copyWith(color: AppColors.stone),
+              style: text.bodyLarge
+                  ?.copyWith(color: BulwarkPalette.of(context).secondaryText),
               textAlign: TextAlign.center,
             ),
           ],

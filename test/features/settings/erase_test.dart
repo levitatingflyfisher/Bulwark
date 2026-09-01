@@ -16,6 +16,7 @@ import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sanctuary_backup_ui/sanctuary_backup_ui.dart';
 
 import '../../support/fake_notification_service.dart';
 
@@ -103,5 +104,39 @@ void main() {
     // Reminders cancelled via an empty reschedule.
     expect(fake.rescheduleCalls, isNotEmpty);
     expect(fake.lastPlan, isEmpty);
+  });
+
+  group('eraseAfterSnapshot (the pre-wipe contract)', () {
+    Future<(EraseOutcome, bool)> run(PreWipeOutcome o,
+        {required bool promised}) async {
+      var wiped = false;
+      final outcome = await eraseAfterSnapshot(
+        snapshot: () async => (outcome: o, entry: null),
+        wipe: () async => wiped = true,
+        promisedCopy: promised,
+      );
+      return (outcome, wiped);
+    }
+
+    test('a verified copy was taken: wipe', () async {
+      expect(await run(PreWipeOutcome.taken, promised: true),
+          (EraseOutcome.erasedWithSafetyCopy, true));
+    });
+
+    test('the copy failed: nothing is wiped', () async {
+      expect(await run(PreWipeOutcome.failed, promised: true),
+          (EraseOutcome.keptBecauseSnapshotFailed, false));
+    });
+
+    test('no words, and the dialog said there is no copy: wipe', () async {
+      expect(await run(PreWipeOutcome.noKey, promised: false),
+          (EraseOutcome.erasedNoCopy, true));
+    });
+
+    test('a copy was promised but there is no key: nothing is wiped',
+        () async {
+      expect(await run(PreWipeOutcome.noKey, promised: true),
+          (EraseOutcome.keptBecauseSnapshotFailed, false));
+    });
   });
 }

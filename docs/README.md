@@ -50,6 +50,7 @@ New here? Start with the [README quickstart](../README.md), then
 
 - **[Vision](../VISION.md)** — the one idea, the invariants, the honest
   scorecard.
+- **[Personas](explanation/personas.md)**: who agents play when they test the UI, with scenarios.
 - **[Design philosophy](design-philosophy.md)** — why the pacing engine only
   ever advises, why the signature is a wall and not a streak, and the
   de-personalization stance behind the shipped content.

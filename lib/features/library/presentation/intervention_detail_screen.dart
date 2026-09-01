@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:openhearth_design/openhearth_design.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
 import 'package:bulwark/features/adoption/domain/enums.dart';
 import 'package:bulwark/features/adoption/domain/habit_state.dart';
+import 'package:bulwark/features/adoption/domain/weak_trigger.dart';
 import 'package:bulwark/features/adoption/presentation/habit_actions.dart';
 import 'package:bulwark/features/adoption/presentation/providers.dart';
 import 'package:bulwark/features/adoption/presentation/widgets/evidence_tag.dart';
 import 'package:bulwark/features/library/data/content_loader.dart';
 import 'package:bulwark/features/library/domain/intervention.dart';
 import 'package:bulwark/features/library/presentation/content_labels.dart';
-import 'package:bulwark/shared/theme/app_colors.dart';
+import 'package:bulwark/shared/theme/app_palette.dart';
 import 'package:bulwark/shared/theme/app_spacing.dart';
+import 'package:bulwark/shared/widgets/undo_host.dart';
 
 /// The full card for one intervention: what to do, when, why, the evidence, any
 /// safety note, and generic buying criteria — plus state-aware actions. asNeeded
@@ -30,22 +33,34 @@ class _InterventionDetailScreenState
     extends ConsumerState<InterventionDetailScreen> {
   bool _busy = false;
 
-  Future<void> _run(Future<void> Function() action, String done) async {
+  /// Runs a lifecycle change and offers Undo for it (never a timeout). A
+  /// failed write only says so; there is nothing to undo.
+  Future<void> _run(
+      Future<HabitState?> Function() action, String done) async {
     if (_busy) return;
     setState(() => _busy = true);
-    var message = done;
+    // Read before the await: the change can take this screen's ref with it.
+    final undo = ref.read(undoControllerProvider);
+    final actions = ref.read(habitActionsProvider);
+    final id = widget.id;
     try {
-      await action();
-    } catch (_) {
+      final prior = await action();
+      undo.show(
+        message: done,
+        onUndo: () => actions.restore(id, prior),
+      );
+    } catch (e, st) {
       // A write failure must not strand the button on "busy": report it
       // calmly and fall through to the finally that re-enables the action.
-      message = 'Something went wrong. Please try again.';
+      debugPrint('Habit change failed: $e\n$st');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content:
+                Text('That didn’t save. ${ohFriendlyErrorMessage(e)}')));
+      }
     } finally {
       if (mounted) setState(() => _busy = false);
     }
-    if (!mounted) return;
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -55,25 +70,37 @@ class _InterventionDetailScreenState
 
     return Scaffold(
       appBar: AppBar(title: const Text('Habit')),
-      body: libraryAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => _centered('Could not load content.\n$e'),
-        data: (library) {
-          final intervention = library.byIdOrNull(widget.id);
-          if (intervention == null) {
-            return _centered('This habit is no longer in the library.');
-          }
-          final state = statesAsync.valueOrNull?[widget.id];
-          return _Body(
-            intervention: intervention,
-            state: state,
-            busy: _busy,
-            onActivate: () => _run(
-                () => activateHabit(ref, intervention.id), 'Activated.'),
-            onQueue: () => _run(
-                () => queueHabit(ref, intervention.id), 'Added to your queue.'),
-          );
-        },
+      body: OhPage(
+        padding: EdgeInsets.zero,
+        child: libraryAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, st) => OhErrorState.fromError(
+            e,
+            stackTrace: st,
+            title: "Couldn’t open this habit",
+            onRetry: () => ref.invalidate(contentLibraryProvider),
+          ),
+          data: (library) {
+            final intervention = library.byIdOrNull(widget.id);
+            if (intervention == null) {
+              return _centered('This habit is no longer in the library.');
+            }
+            final state = statesAsync.valueOrNull?[widget.id];
+            return _Body(
+              intervention: intervention,
+              state: state,
+              busy: _busy,
+              onActivate: () => _run(() => activateHabit(ref, intervention.id),
+                  '${intervention.title} is on your Today list.'),
+              onQueue: () => _run(() => queueHabit(ref, intervention.id),
+                  '${intervention.title} is in your queue.'),
+              onSetAside: () => _run(
+                  () => setAsideHabit(ref, intervention.id),
+                  '${intervention.title} is set aside. It is off Today; '
+                  'nothing is lost.'),
+            );
+          },
+        ),
       ),
     );
   }
@@ -93,6 +120,7 @@ class _Body extends StatelessWidget {
     required this.busy,
     required this.onActivate,
     required this.onQueue,
+    required this.onSetAside,
   });
 
   final Intervention intervention;
@@ -100,6 +128,7 @@ class _Body extends StatelessWidget {
   final bool busy;
   final VoidCallback onActivate;
   final VoidCallback onQueue;
+  final VoidCallback onSetAside;
 
   @override
   Widget build(BuildContext context) {
@@ -121,11 +150,18 @@ class _Body extends StatelessWidget {
                 child: Text.rich(
                   TextSpan(children: [
                     TextSpan(
-                      text: '${anchorLabel(i.trigger.anchor)} — ',
+                      text: '${anchorLabel(effectiveAnchor(state, i))}: ',
                       style: text.bodyMedium
                           ?.copyWith(fontWeight: FontWeight.w600),
                     ),
-                    TextSpan(text: i.trigger.note, style: text.bodyMedium),
+                    // Moved by the person: the content's cue sentence names
+                    // the old moment, so say where it came from instead.
+                    TextSpan(
+                        text: effectiveAnchor(state, i) != i.trigger.anchor
+                            ? 'you moved it here from '
+                                '${anchorLabel(i.trigger.anchor).toLowerCase()}.'
+                            : i.trigger.note,
+                        style: text.bodyMedium),
                   ]),
                 ),
               ),
@@ -142,7 +178,8 @@ class _Body extends StatelessWidget {
               const SizedBox(height: AppSpacing.xs),
               Text(
                 evidenceGloss(i.evidence),
-                style: text.bodySmall?.copyWith(color: AppColors.stone),
+                style: text.bodySmall
+                    ?.copyWith(color: BulwarkPalette.of(context).secondaryText),
               ),
               const SizedBox(height: AppSpacing.md),
               // Metadata row.
@@ -158,7 +195,8 @@ class _Body extends StatelessWidget {
               if (i.cost.note != null) ...[
                 const SizedBox(height: AppSpacing.xs),
                 Text(i.cost.note!,
-                    style: text.bodySmall?.copyWith(color: AppColors.stone)),
+                    style: text.bodySmall?.copyWith(
+                        color: BulwarkPalette.of(context).secondaryText)),
               ],
               if (i.safety != null) ...[
                 const SizedBox(height: AppSpacing.md),
@@ -172,7 +210,8 @@ class _Body extends StatelessWidget {
               Text(
                 'Bulwark is habit-tracking with health education, not medical '
                 'advice. For specific conditions, talk to a clinician.',
-                style: text.labelSmall?.copyWith(color: AppColors.stone),
+                style: text.labelSmall
+                    ?.copyWith(color: BulwarkPalette.of(context).secondaryText),
               ),
             ],
           ),
@@ -183,6 +222,7 @@ class _Body extends StatelessWidget {
           busy: busy,
           onActivate: onActivate,
           onQueue: onQueue,
+          onSetAside: onSetAside,
         ),
       ],
     );
@@ -194,11 +234,12 @@ class _Body extends StatelessWidget {
       padding:
           const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 2),
       decoration: BoxDecoration(
-        color: AppColors.stone.withValues(alpha: 0.14),
+        color: BulwarkPalette.of(context).secondaryText.withValues(alpha: 0.14),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Text(label,
-          style: text.labelSmall?.copyWith(color: AppColors.ink)),
+          style: text.labelSmall
+              ?.copyWith(color: Theme.of(context).colorScheme.onSurface)),
     );
   }
 }
@@ -215,7 +256,8 @@ class _IconLine extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.only(top: 2),
-          child: Icon(icon, size: 16, color: AppColors.stone),
+          child: Icon(icon,
+              size: 16, color: BulwarkPalette.of(context).secondaryText),
         ),
         const SizedBox(width: AppSpacing.sm),
         Expanded(child: child),
@@ -235,16 +277,18 @@ class _SafetyNote extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.clay.withValues(alpha: 0.10),
+        color: BulwarkPalette.of(context).clay.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.clay.withValues(alpha: 0.35)),
+        border: Border.all(
+            color: BulwarkPalette.of(context).clay.withValues(alpha: 0.35)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(
-            padding: EdgeInsets.only(top: 2),
-            child: Icon(LucideIcons.info, size: 16, color: AppColors.clay),
+          Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: Icon(LucideIcons.info,
+                size: 16, color: BulwarkPalette.of(context).clay),
           ),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
@@ -252,7 +296,8 @@ class _SafetyNote extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Good to know',
-                    style: styles.titleSmall?.copyWith(color: AppColors.clay)),
+                    style: styles.titleSmall
+                        ?.copyWith(color: BulwarkPalette.of(context).clay)),
                 const SizedBox(height: AppSpacing.xs),
                 Text(text, style: styles.bodySmall),
               ],
@@ -282,8 +327,8 @@ class _ShoppingCriteria extends StatelessWidget {
           children: [
             Row(
               children: [
-                const Icon(LucideIcons.shoppingBasket,
-                    size: 16, color: AppColors.stone),
+                Icon(LucideIcons.shoppingBasket,
+                    size: 16, color: BulwarkPalette.of(context).secondaryText),
                 const SizedBox(width: AppSpacing.sm),
                 Text('What to look for', style: text.titleSmall),
               ],
@@ -292,7 +337,8 @@ class _ShoppingCriteria extends StatelessWidget {
             Text(shopping.item, style: text.bodyMedium),
             const SizedBox(height: AppSpacing.xs),
             Text(shopping.criteria,
-                style: text.bodySmall?.copyWith(color: AppColors.stone)),
+                style: text.bodySmall?.copyWith(
+                    color: BulwarkPalette.of(context).secondaryText)),
           ],
         ),
       ),
@@ -310,6 +356,7 @@ class _ActionBar extends StatelessWidget {
     required this.busy,
     required this.onActivate,
     required this.onQueue,
+    required this.onSetAside,
   });
 
   final Intervention intervention;
@@ -317,6 +364,7 @@ class _ActionBar extends StatelessWidget {
   final bool busy;
   final VoidCallback onActivate;
   final VoidCallback onQueue;
+  final VoidCallback onSetAside;
 
   @override
   Widget build(BuildContext context) {
@@ -337,22 +385,37 @@ class _ActionBar extends StatelessWidget {
     final status = state?.status;
     switch (status) {
       case HabitStatus.active:
-        return const _StatusChip(
-            icon: LucideIcons.circleCheck,
-            color: AppColors.lichen,
-            label: 'Active now');
+        // The way off Today that isn't graduation or Erase (audit
+        // design-of-everyday-things-01): set aside, keep everything.
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _StatusChip(
+                icon: LucideIcons.circleCheck,
+                color: BulwarkPalette.of(context).lichen,
+                label: 'Active now'),
+            const SizedBox(height: AppSpacing.sm),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: busy ? null : onSetAside,
+                child: const Text('Set aside'),
+              ),
+            ),
+          ],
+        );
       case HabitStatus.graduated:
-        return const _StatusChip(
+        return _StatusChip(
             icon: LucideIcons.check,
-            color: AppColors.lichen,
+            color: BulwarkPalette.of(context).lichen,
             label: 'Made automatic');
       case HabitStatus.queued:
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const _StatusChip(
+            _StatusChip(
                 icon: LucideIcons.clock,
-                color: AppColors.stone,
+                color: BulwarkPalette.of(context).secondaryText,
                 label: 'In your queue'),
             const SizedBox(height: AppSpacing.sm),
             SizedBox(
@@ -364,12 +427,18 @@ class _ActionBar extends StatelessWidget {
             ),
           ],
         );
-      case HabitStatus.retired:
       case HabitStatus.paused:
       case null:
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            if (status == HabitStatus.paused) ...[
+              _StatusChip(
+                  icon: LucideIcons.pause,
+                  color: BulwarkPalette.of(context).secondaryText,
+                  label: 'Set aside for now'),
+              const SizedBox(height: AppSpacing.sm),
+            ],
             SizedBox(
               width: double.infinity,
               child: FilledButton(
@@ -398,13 +467,15 @@ class _ReferenceOnly extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Icon(LucideIcons.bookOpen, size: 16, color: AppColors.stone),
+        Icon(LucideIcons.bookOpen,
+            size: 16, color: BulwarkPalette.of(context).secondaryText),
         const SizedBox(width: AppSpacing.sm),
         Expanded(
           child: Text(
-            'Reference only for now — this one is used as needed, not tracked '
+            'Reference only for now. This one is used as needed, not tracked '
             'daily.',
-            style: text.bodySmall?.copyWith(color: AppColors.stone),
+            style: text.bodySmall
+                ?.copyWith(color: BulwarkPalette.of(context).secondaryText),
           ),
         ),
       ],
@@ -427,8 +498,7 @@ class _StatusChip extends StatelessWidget {
         Icon(icon, size: 18, color: color),
         const SizedBox(width: AppSpacing.sm),
         Expanded(
-          child: Text(label,
-              style: text.titleSmall?.copyWith(color: color)),
+          child: Text(label, style: text.titleSmall?.copyWith(color: color)),
         ),
       ],
     );
