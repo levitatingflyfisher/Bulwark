@@ -192,10 +192,56 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // The '100%' / 'M/d' labels are FittedBox-scaled, so they render on one
-    // line without overflowing the narrow columns.
-    expect(find.textContaining('%'), findsWidgets);
+    // The did/total and date labels are FittedBox-scaled, so they render on
+    // one line without overflowing the narrow columns.
+    expect(find.text('1/1'), findsWidgets);
     expect(tester.takeException(), isNull);
+  });
+
+  // "9/14" under "100%" read as nine of fourteen; it was a date (audit top
+  // finding 1). The week is now a month-name date, the count is did/total,
+  // an empty week draws no bar, and one week is a sentence, not a chart.
+  group('the adherence labels cannot be misread', () {
+    Checkin c(DateTime d, CheckinResult r) =>
+        Checkin(interventionId: 'a', date: d, result: r);
+
+    Future<void> pumpTrend(WidgetTester tester, List<Checkin> checkins) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(360, 2400);
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(_screen(checkins: checkins));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('weeks are named by month, counts are did/total',
+        (tester) async {
+      await pumpTrend(tester, [
+        // Week of Sep 14: 2 of 3 done.
+        c(DateTime(2026, 9, 14), CheckinResult.did),
+        c(DateTime(2026, 9, 15), CheckinResult.did),
+        c(DateTime(2026, 9, 16), CheckinResult.skipped),
+        // Week of Sep 21: 0 of 1.
+        c(DateTime(2026, 9, 21), CheckinResult.forgot),
+      ]);
+      expect(find.text('Sep 14'), findsOneWidget);
+      expect(find.text('Sep 21'), findsOneWidget);
+      expect(find.text('9/14'), findsNothing);
+      expect(find.text('2/3'), findsOneWidget);
+      expect(find.text('0/1'), findsOneWidget);
+      expect(find.textContaining('%'), findsNothing);
+      // A week with nothing done draws no bar (it used to draw 2 px).
+      expect(tester.getSize(find.byKey(ValueKey(DateTime(2026, 9, 21)))).height,
+          0);
+    });
+
+    testWidgets('a single week is a sentence, not a chart', (tester) async {
+      await pumpTrend(tester, [
+        c(DateTime(2026, 9, 14), CheckinResult.did),
+        c(DateTime(2026, 9, 15), CheckinResult.skipped),
+      ]);
+      expect(find.textContaining('1 of 2 check-ins done'), findsOneWidget);
+      expect(find.text('1/2'), findsNothing);
+    });
   });
 
   testWidgets('tapping a set stone reveals the habit', (tester) async {

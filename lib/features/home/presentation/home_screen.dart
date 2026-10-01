@@ -48,9 +48,10 @@ class HomeScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Bulwark'),
         centerTitle: false,
+        // The fleet bar folds by space so "Bulwark" stays whole (it read
+        // "B..." at 320 dp x 3.0).
         actions: const [
-          _NavMenu(),
-          ThemeToggle(),
+          OhBarActions(children: [_MoreMenu(), ThemeToggle()]),
         ],
       ),
       body: OhPage(
@@ -78,48 +79,20 @@ class HomeScreen extends ConsumerWidget {
   }
 }
 
-/// The Home hub: a compact overflow menu to the value screens. Home is the one
-/// always-reachable surface, so the routes to Library/Queue/Shopping/Progress
-/// and Settings hang off it.
-class _NavMenu extends StatelessWidget {
-  const _NavMenu();
+/// Home's worded More menu: the two places that are not sections of their
+/// own (Queue and Shopping). Today, Progress, Library and Settings are in
+/// the persistent bottom bar.
+class _MoreMenu extends StatelessWidget {
+  const _MoreMenu();
 
   @override
-  Widget build(BuildContext context) {
-    // Icon plus a visible word (fleet ruling: a tooltip is never a command's
-    // only name). The bar's foreground colours both.
-    final color = IconTheme.of(context).color;
-    // Bar words stop growing at 2x (still the 200% WCAG asks for) so the
-    // title keeps room at 320 dp and 3x text.
-    return MediaQuery.withClampedTextScaling(
-      maxScaleFactor: 2.0,
-      child: PopupMenuButton<String>(
-        tooltip: 'Go to a section',
+  Widget build(BuildContext context) => OhBarOverflow<String>(
         onSelected: (route) => context.push(route),
-        child: SizedBox(
-          height: 48,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(LucideIcons.menu, color: color),
-                const SizedBox(width: 8),
-                Text('Menu', style: TextStyle(color: color)),
-              ],
-            ),
-          ),
-        ),
         itemBuilder: (_) => const [
-          PopupMenuItem(value: '/library', child: Text('Library')),
           PopupMenuItem(value: '/queue', child: Text('Queue')),
           PopupMenuItem(value: '/shopping', child: Text('Shopping')),
-          PopupMenuItem(value: '/progress', child: Text('Progress')),
-          PopupMenuItem(value: '/settings', child: Text('Settings')),
         ],
-      ),
-    );
-  }
+      );
 }
 
 class _TodayBody extends StatelessWidget {
@@ -256,9 +229,15 @@ class _HabitCard extends StatelessWidget {
     // cue sentence describes the old one, so the card names the new moment.
     final moved = habit.state.triggerAnchorOverride != null &&
         effectiveAnchor(habit.state, i) != i.trigger.anchor;
+    // The card opens the habit's detail, where the whole mechanism lives:
+    // it cuts the WHY at two lines, as the Library rows that open the same
+    // page do (audit top finding 7).
     return Card(
       margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-      child: Padding(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+       onTap: () => context.push('/intervention/${habit.interventionId}'),
+       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -311,6 +290,7 @@ class _HabitCard extends StatelessWidget {
               ),
           ],
         ),
+       ),
       ),
     );
   }
@@ -598,7 +578,7 @@ class _EmptyBody extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.lg),
             OutlinedButton(
-              onPressed: () => context.push('/library'),
+              onPressed: () => context.go('/library'),
               child: const Text('Browse the Library'),
             ),
           ],

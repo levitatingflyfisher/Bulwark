@@ -35,13 +35,17 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     super.dispose();
   }
 
+  // Choices apply as they are made, so the list behind the sheet moves and
+  // dismissing the sheet keeps them (audit top finding 11).
   Future<void> _openFacetSheet() async {
-    final updated = await showModalBottomSheet<LibraryFilters>(
+    await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      builder: (_) => _FacetSheet(initial: _filters),
+      builder: (_) => _FacetSheet(
+        initial: _filters,
+        onChanged: (f) => setState(() => _filters = f),
+      ),
     );
-    if (updated != null) setState(() => _filters = updated);
   }
 
   @override
@@ -137,6 +141,10 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                     next.contains(c) ? next.remove(c) : next.add(c);
                     _filters = _filters.copyWith(categories: next);
                   }),
+                ),
+                _ActiveFacets(
+                  filters: _filters,
+                  onChanged: (f) => setState(() => _filters = f),
                 ),
                 Expanded(
                   child: results.isEmpty
@@ -289,9 +297,74 @@ class _NoMatches extends StatelessWidget {
 
 // ─── Facet sheet (evidence / cost / time) ───────────────────────────────────
 
+const _evidenceOptions = [
+  (0, 'Any'),
+  (1, 'Mechanistic +'),
+  (2, 'Observational +'),
+  (3, 'Trials only'),
+];
+const _timeOptions = [
+  (null, 'Any'),
+  // 'Up to' rather than the maths symbol: neither bundled font has
+  // U+2264, so it drew as a box. Same meaning, in letters we ship.
+  (5, 'Up to 5 min'),
+  (10, 'Up to 10 min'),
+  (20, 'Up to 20 min'),
+];
+
+/// The sheet's filters that are on, named in a line of removable chips under
+/// the category strip; a 4 px dot on the bar button was the only sign before.
+class _ActiveFacets extends StatelessWidget {
+  const _ActiveFacets({required this.filters, required this.onChanged});
+
+  final LibraryFilters filters;
+  final ValueChanged<LibraryFilters> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!filters.hasSheetFacets) return const SizedBox.shrink();
+    String label<T>(List<(T, String)> options, T value) =>
+        options.firstWhere((o) => o.$1 == value).$2;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+          AppSpacing.md, AppSpacing.xs, AppSpacing.md, 0),
+      child: Wrap(
+        spacing: AppSpacing.sm,
+        runSpacing: AppSpacing.xs,
+        children: [
+          if (filters.evidenceThreshold > 0)
+            InputChip(
+              label: Text(label(_evidenceOptions, filters.evidenceThreshold)),
+              deleteIcon: const Icon(Icons.clear, size: 18),
+              deleteButtonTooltipMessage: 'Remove evidence filter',
+              onDeleted: () =>
+                  onChanged(filters.copyWith(evidenceThreshold: 0)),
+            ),
+          for (final tier in filters.costTiers)
+            InputChip(
+              label: Text(costLabel(tier)),
+              deleteIcon: const Icon(Icons.clear, size: 18),
+              deleteButtonTooltipMessage: 'Remove cost filter',
+              onDeleted: () => onChanged(filters.copyWith(
+                  costTiers: Set.of(filters.costTiers)..remove(tier))),
+            ),
+          if (filters.maxMinutes != null)
+            InputChip(
+              label: Text(label(_timeOptions, filters.maxMinutes)),
+              deleteIcon: const Icon(Icons.clear, size: 18),
+              deleteButtonTooltipMessage: 'Remove time filter',
+              onDeleted: () => onChanged(filters.copyWith(maxMinutes: null)),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
 class _FacetSheet extends StatefulWidget {
-  const _FacetSheet({required this.initial});
+  const _FacetSheet({required this.initial, required this.onChanged});
   final LibraryFilters initial;
+  final ValueChanged<LibraryFilters> onChanged;
 
   @override
   State<_FacetSheet> createState() => _FacetSheetState();
@@ -300,20 +373,11 @@ class _FacetSheet extends StatefulWidget {
 class _FacetSheetState extends State<_FacetSheet> {
   late LibraryFilters _draft = widget.initial;
 
-  static const _evidenceOptions = [
-    (0, 'Any'),
-    (1, 'Mechanistic +'),
-    (2, 'Observational +'),
-    (3, 'Trials only'),
-  ];
-  static const _timeOptions = [
-    (null, 'Any'),
-    // 'Up to' rather than the maths symbol: neither bundled font has
-    // U+2264, so it drew as a box. Same meaning, in letters we ship.
-    (5, 'Up to 5 min'),
-    (10, 'Up to 10 min'),
-    (20, 'Up to 20 min'),
-  ];
+  /// Every choice applies at once: the list behind the sheet moves.
+  void _set(LibraryFilters next) {
+    setState(() => _draft = next);
+    widget.onChanged(next);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -337,8 +401,8 @@ class _FacetSheetState extends State<_FacetSheet> {
                   ChoiceChip(
                     label: Text(label),
                     selected: _draft.evidenceThreshold == value,
-                    onSelected: (_) => setState(() =>
-                        _draft = _draft.copyWith(evidenceThreshold: value)),
+                    onSelected: (_) =>
+                        _set(_draft.copyWith(evidenceThreshold: value)),
                   ),
               ],
             ),
@@ -349,16 +413,23 @@ class _FacetSheetState extends State<_FacetSheet> {
               spacing: AppSpacing.sm,
               runSpacing: AppSpacing.sm,
               children: [
+                // The neutral state is a choice you can see and pick.
+                ChoiceChip(
+                  key: const ValueKey('cost-any'),
+                  label: const Text('Any'),
+                  selected: _draft.costTiers.isEmpty,
+                  onSelected: (_) => _set(_draft.copyWith(costTiers: {})),
+                ),
                 for (final tier in CostTier.values)
                   FilterChip(
                     label: Text(costLabel(tier)),
                     selected: _draft.costTiers.contains(tier),
                     showCheckmark: false,
-                    onSelected: (_) => setState(() {
+                    onSelected: (_) {
                       final next = Set<CostTier>.of(_draft.costTiers);
                       next.contains(tier) ? next.remove(tier) : next.add(tier);
-                      _draft = _draft.copyWith(costTiers: next);
-                    }),
+                      _set(_draft.copyWith(costTiers: next));
+                    },
                   ),
               ],
             ),
@@ -373,8 +444,8 @@ class _FacetSheetState extends State<_FacetSheet> {
                   ChoiceChip(
                     label: Text(label),
                     selected: _draft.maxMinutes == value,
-                    onSelected: (_) => setState(
-                        () => _draft = _draft.copyWith(maxMinutes: value)),
+                    onSelected: (_) =>
+                        _set(_draft.copyWith(maxMinutes: value)),
                   ),
               ],
             ),
@@ -387,15 +458,16 @@ class _FacetSheetState extends State<_FacetSheet> {
               spacing: AppSpacing.sm,
               runSpacing: AppSpacing.sm,
               children: [
+                // Clear touches only what this sheet shows; the category
+                // strip and the search keep their choices.
                 TextButton(
-                  onPressed: () => setState(() => _draft = LibraryFilters(
-                        query: _draft.query,
-                      )),
+                  onPressed: () => _set(_draft.copyWith(
+                      evidenceThreshold: 0, costTiers: {}, maxMinutes: null)),
                   child: const Text('Clear'),
                 ),
                 FilledButton(
-                  onPressed: () => Navigator.of(context).pop(_draft),
-                  child: const Text('Apply'),
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Done'),
                 ),
               ],
             ),

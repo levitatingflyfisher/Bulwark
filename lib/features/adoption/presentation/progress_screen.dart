@@ -327,15 +327,26 @@ class _AdherenceTrend extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    final rates = const AdherenceStats().weeklyDidRate(checkins);
-    if (rates.isEmpty) {
+    final secondary = BulwarkPalette.of(context).secondaryText;
+    final tallies = const AdherenceStats().weekly(checkins);
+    if (tallies.isEmpty) {
       return Text(
         'Check in through the week and your adherence trend appears here.',
-        style: text.bodySmall
-            ?.copyWith(color: BulwarkPalette.of(context).secondaryText),
+        style: text.bodySmall?.copyWith(color: secondary),
       );
     }
-    final weeks = rates.keys.toList()..sort();
+    final weeks = tallies.keys.toList()..sort();
+    // One week is a sentence: a lone bar fills the row and says nothing a
+    // number doesn't (audit top finding 1).
+    if (weeks.length == 1) {
+      final t = tallies[weeks.single]!;
+      return Text(
+        'Week of ${DateFormat('MMM d').format(weeks.single)}: '
+        '${t.did} of ${t.total} check-ins done. The trend appears after a '
+        'second week.',
+        style: text.bodySmall?.copyWith(color: secondary),
+      );
+    }
     final recent = weeks.length <= _maxWeeks
         ? weeks
         : weeks.sublist(weeks.length - _maxWeeks);
@@ -345,43 +356,50 @@ class _AdherenceTrend extends StatelessWidget {
       children: [
         for (final week in recent)
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 3),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // FittedBox so the % / date labels shrink to fit the narrow
-                  // column at large text scales instead of wrapping into an
-                  // illegible vertical stack of single digits.
-                  FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text('${(rates[week]! * 100).round()}%',
-                        maxLines: 1,
-                        softWrap: false,
-                        style: text.labelSmall?.copyWith(
-                            color: BulwarkPalette.of(context).secondaryText)),
-                  ),
-                  const SizedBox(height: 2),
-                  Container(
-                    height: (rates[week]! * _barMaxHeight)
-                        .clamp(2.0, _barMaxHeight),
-                    decoration: BoxDecoration(
-                      color: BulwarkPalette.of(context)
-                          .lichen
-                          .withValues(alpha: 0.75),
-                      borderRadius: BorderRadius.circular(3),
+            child: Semantics(
+              label: 'Week of ${DateFormat('MMMM d').format(week)}: '
+                  '${tallies[week]!.did} of ${tallies[week]!.total} done',
+              excludeSemantics: true,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 3),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // FittedBox so the count / date labels shrink to fit the
+                    // narrow column at large text scales instead of wrapping
+                    // into an illegible vertical stack of single digits.
+                    // The count is did/total, and the date names its month,
+                    // so neither reads as the other ("9/14" was a date).
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                          '${tallies[week]!.did}/${tallies[week]!.total}',
+                          maxLines: 1,
+                          softWrap: false,
+                          style: text.labelSmall?.copyWith(color: secondary)),
                     ),
-                  ),
-                  const SizedBox(height: 2),
-                  FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(DateFormat('M/d').format(week),
-                        maxLines: 1,
-                        softWrap: false,
-                        style: text.labelSmall?.copyWith(
-                            color: BulwarkPalette.of(context).secondaryText)),
-                  ),
-                ],
+                    const SizedBox(height: 2),
+                    // No floor: a week with nothing done draws no bar.
+                    Container(
+                      key: ValueKey(week),
+                      height: tallies[week]!.didRate * _barMaxHeight,
+                      decoration: BoxDecoration(
+                        color: BulwarkPalette.of(context)
+                            .lichen
+                            .withValues(alpha: 0.75),
+                        borderRadius: BorderRadius.circular(3),
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(DateFormat('MMM d').format(week),
+                          maxLines: 1,
+                          softWrap: false,
+                          style: text.labelSmall?.copyWith(color: secondary)),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

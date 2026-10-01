@@ -82,6 +82,9 @@ class WallGeometry {
 /// `weathered` stones for eroded graduated habits (cracked, clay-tinted). Slight
 /// deterministic per-stone variation keeps it masonry, not a grid.
 class WallPainter extends CustomPainter {
+  /// Opacity of a forming stone's outline, the mark that tells it apart.
+  static const formingEdgeAlpha = 0.8;
+
   WallPainter({
     required this.placements,
     required this.columns,
@@ -135,7 +138,9 @@ class WallPainter extends CustomPainter {
         canvas.drawRRect(
             rrect, Paint()..color = palette.wallForming.withValues(alpha: 0.12));
         canvas.drawRRect(
-            rrect, _stroke(palette.wallFormingEdge.withValues(alpha: 0.55), 1.4));
+            rrect,
+            _stroke(palette.wallFormingEdge.withValues(alpha: formingEdgeAlpha),
+                1.4));
       case StoneKind.weathered:
         canvas.drawRRect(
             rrect, Paint()..color = palette.clay.withValues(alpha: 0.18));

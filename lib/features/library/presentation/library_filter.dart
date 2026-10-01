@@ -31,6 +31,10 @@ class LibraryFilters {
       costTiers.isNotEmpty ||
       maxMinutes != null;
 
+  /// Whether a filter from the facet sheet (evidence, cost, time) is on.
+  bool get hasSheetFacets =>
+      evidenceThreshold > 0 || costTiers.isNotEmpty || maxMinutes != null;
+
   LibraryFilters copyWith({
     String? query,
     Set<Category>? categories,

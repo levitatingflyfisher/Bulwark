@@ -2,6 +2,7 @@ import 'package:bulwark/features/home/presentation/home_screen.dart';
 import 'package:bulwark/features/library/presentation/library_screen.dart';
 import 'package:bulwark/shared/theme/app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -42,12 +43,23 @@ void main() {
     (320.0, 2.0),
     (320.0, 3.0),
   ]) {
-    testWidgets('Home bar names its menu in words at ${width}dp x$scale',
+    testWidgets('Home bar names its More menu in words at ${width}dp x$scale',
         (tester) async {
       await pump(tester, const HomeScreen(), width, scale);
-      expect(inBar('Menu'), findsOneWidget);
-      expect(inBar('Auto'), findsOneWidget);
       expect(tester.takeException(), isNull);
+      // The title is whole (it read "B..." at 320 dp x 3.0): the bar folds
+      // by space, words first to go rightmost (fleet OhBarActions rule).
+      final title = tester.renderObject<RenderParagraph>(find.descendant(
+          of: find.byType(AppBar), matching: find.text('Bulwark')));
+      expect(title.getMaxIntrinsicWidth(double.infinity),
+          lessThanOrEqualTo(title.size.width + 0.5),
+          reason: 'the Bulwark title is cut');
+      if (scale <= 1.3) {
+        expect(inBar('More'), findsOneWidget);
+        expect(inBar('Auto'), findsOneWidget);
+      } else {
+        expect(find.bySemanticsLabel('More'), findsOneWidget);
+      }
     });
 
     testWidgets('Library bar names Filters in words at ${width}dp x$scale',

@@ -104,12 +104,83 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(ChoiceChip, 'Trials only'));
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(FilledButton, 'Apply'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Done'));
     await tester.pumpAndSettle();
 
     expect(find.text('sleep-window'), findsOneWidget); // rct
     expect(find.text('eat-protein'), findsNothing); // observational
     expect(find.text('box-breathing'), findsNothing); // mechanistic
+  });
+
+  // The sheet deferred everything to Apply: the list behind it never moved,
+  // dragging it away threw the choices out, Clear also reset the category
+  // strip it doesn't show, Cost had no neutral choice, and a 4 px dot was
+  // the only sign a filter was on (audit top finding 11).
+  group('the facet sheet filters live and says what is on', () {
+    testWidgets('a choice applies at once and survives dismissing the sheet',
+        (tester) async {
+      await tester.pumpWidget(_screen());
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Filters'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(ChoiceChip, 'Trials only'));
+      await tester.pumpAndSettle();
+      // Dismiss without any button (tap the scrim above the sheet).
+      await tester.tapAt(const Offset(20, 20));
+      await tester.pumpAndSettle();
+
+      expect(find.text('eat-protein'), findsNothing);
+      expect(find.text('sleep-window'), findsOneWidget);
+    });
+
+    testWidgets('Clear resets only what the sheet shows', (tester) async {
+      await tester.pumpWidget(_screen());
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilterChip, 'Nutrition'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Filters'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(ChoiceChip, 'Trials only'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(TextButton, 'Clear'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Done'));
+      await tester.pumpAndSettle();
+
+      // The category from the strip stays on.
+      expect(find.text('eat-protein'), findsOneWidget);
+      expect(find.text('sleep-window'), findsNothing);
+    });
+
+    testWidgets('Cost has an Any choice', (tester) async {
+      await tester.pumpWidget(_screen());
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Filters'));
+      await tester.pumpAndSettle();
+      final anyCost = find.byKey(const ValueKey('cost-any'));
+      expect(anyCost, findsOneWidget);
+      expect(tester.widget<ChoiceChip>(anyCost).selected, isTrue);
+    });
+
+    testWidgets('what is on is named on the screen, and removable',
+        (tester) async {
+      await tester.pumpWidget(_screen());
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Filters'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(ChoiceChip, 'Trials only'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Done'));
+      await tester.pumpAndSettle();
+
+      final on = find.widgetWithText(InputChip, 'Trials only');
+      expect(on, findsOneWidget);
+      await tester.tap(find.descendant(
+          of: on, matching: find.byIcon(Icons.clear)));
+      await tester.pumpAndSettle();
+      expect(on, findsNothing);
+      expect(find.text('eat-protein'), findsOneWidget);
+    });
   });
 
   for (final scale in [1.0, 3.0]) {
@@ -135,11 +206,11 @@ void main() {
       await tester.pumpWidget(_screen(textScale: scale));
       await tester.pumpAndSettle();
 
-      // Open the facet sheet — the Clear/Apply row is what overflowed at 320 dp.
+      // Open the facet sheet — the Clear/Done row is what overflowed at 320 dp.
       await tester.tap(find.text('Filters'));
       await tester.pumpAndSettle();
 
-      expect(find.widgetWithText(FilledButton, 'Apply'), findsOneWidget);
+      expect(find.widgetWithText(FilledButton, 'Done'), findsOneWidget);
       expect(find.widgetWithText(TextButton, 'Clear'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });

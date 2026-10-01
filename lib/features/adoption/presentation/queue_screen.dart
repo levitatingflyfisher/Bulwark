@@ -361,7 +361,7 @@ class _EmptyQueue extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.lg),
             OutlinedButton(
-              onPressed: () => context.push('/library'),
+              onPressed: () => context.go('/library'),
               child: const Text('Browse the Library'),
             ),
           ],

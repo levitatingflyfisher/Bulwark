@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:math' as math;
 
+import 'package:bulwark/features/adoption/presentation/wall_painter.dart';
 import 'package:bulwark/shared/theme/app_palette.dart';
 import 'package:bulwark/shared/theme/app_theme.dart';
 import 'package:flutter/material.dart';
@@ -61,6 +62,18 @@ void main() {
             greaterThanOrEqualTo(3.0),
             reason: 'lerp $t');
       }
+    });
+
+    // A forming stone is told apart by its outline (its fill is a faint
+    // tint on purpose: the stone is still being set). The outline is the
+    // indicator, so it owes 3:1 on the page; at alpha 0.55 it measured
+    // 2.35:1 light and 2.61:1 dark (audit design-for-hackers-02).
+    test('${entry.key}: a forming stone\'s outline reads at 3:1', () {
+      final bg = theme.scaffoldBackgroundColor;
+      final edge = Color.alphaBlend(
+          p.wallFormingEdge.withValues(alpha: WallPainter.formingEdgeAlpha),
+          bg);
+      expect(_ratio(edge, bg), greaterThanOrEqualTo(3.0));
     });
 
     test('${entry.key}: the error role is not red', () {

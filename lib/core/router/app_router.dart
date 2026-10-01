@@ -14,6 +14,7 @@ import 'package:bulwark/features/library/presentation/intervention_detail_screen
 import 'package:bulwark/features/library/presentation/library_screen.dart';
 import 'package:bulwark/features/onboarding/presentation/onboarding_screen.dart';
 import 'package:bulwark/features/settings/presentation/settings_screen.dart';
+import 'package:bulwark/core/router/section_shell.dart';
 
 part 'app_router.g.dart';
 
@@ -52,9 +53,40 @@ GoRouter appRouter(Ref ref) {
       return null;
     },
     routes: [
-      GoRoute(
-        path: '/',
-        pageBuilder: (c, s) => _fade(key: s.pageKey, child: const HomeScreen()),
+      // The four sections share the persistent bottom bar; everything else
+      // (check-in, detail, queue, shopping, about, onboarding) opens over it.
+      StatefulShellRoute.indexedStack(
+        builder: (c, s, shell) => SectionShell(navigationShell: shell),
+        branches: [
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: '/',
+              pageBuilder: (c, s) =>
+                  _fade(key: s.pageKey, child: const HomeScreen()),
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: '/progress',
+              pageBuilder: (c, s) =>
+                  _fade(key: s.pageKey, child: const ProgressScreen()),
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: '/library',
+              pageBuilder: (c, s) =>
+                  _fade(key: s.pageKey, child: const LibraryScreen()),
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: '/settings',
+              pageBuilder: (c, s) =>
+                  _fade(key: s.pageKey, child: const SettingsScreen()),
+            ),
+          ]),
+        ],
       ),
       GoRoute(
         path: '/onboarding',
@@ -65,11 +97,6 @@ GoRouter appRouter(Ref ref) {
         path: '/checkin',
         pageBuilder: (c, s) =>
             _fade(key: s.pageKey, child: const CheckinScreen()),
-      ),
-      GoRoute(
-        path: '/library',
-        pageBuilder: (c, s) =>
-            _fade(key: s.pageKey, child: const LibraryScreen()),
       ),
       GoRoute(
         path: '/intervention/:id',
@@ -87,16 +114,6 @@ GoRouter appRouter(Ref ref) {
         path: '/shopping',
         pageBuilder: (c, s) =>
             _fade(key: s.pageKey, child: const ShoppingScreen()),
-      ),
-      GoRoute(
-        path: '/progress',
-        pageBuilder: (c, s) =>
-            _fade(key: s.pageKey, child: const ProgressScreen()),
-      ),
-      GoRoute(
-        path: '/settings',
-        pageBuilder: (c, s) =>
-            _fade(key: s.pageKey, child: const SettingsScreen()),
       ),
       GoRoute(
         path: '/about',

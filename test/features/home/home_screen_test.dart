@@ -54,6 +54,10 @@ Widget _home({
       GoRoute(
           path: '/library',
           builder: (_, __) => const Scaffold(body: Text('LIBRARY'))),
+      GoRoute(
+          path: '/intervention/:id',
+          builder: (_, st) =>
+              Scaffold(body: Text('DETAIL ${st.pathParameters['id']}'))),
     ],
   );
   return ProviderScope(
@@ -140,6 +144,18 @@ void main() {
     expect(find.textContaining('not medical advice'), findsOneWidget);
   });
 
+  // The card cut the mechanism at two lines with an ellipsis and no way to
+  // the rest (audit top finding 7); Library rows with the same cut open the
+  // detail. The card now does too.
+  testWidgets('tapping a habit card opens its detail', (tester) async {
+    await tester.pumpWidget(_home(habits: [_habit('sleep-window')]));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('because'));
+    await tester.pumpAndSettle();
+    expect(find.text('DETAIL sleep-window'), findsOneWidget);
+  });
+
   testWidgets('shows the calm empty state when nothing is active',
       (tester) async {
     await tester.pumpWidget(_home(habits: const []));
@@ -163,20 +179,17 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('the nav menu routes to the value screens', (tester) async {
+  // Sections live in the bottom bar now (core/router/section_bar_test);
+  // Home's More menu holds the two places that are not sections.
+  testWidgets('the More menu routes to Queue and Shopping', (tester) async {
     await tester.pumpWidget(_home(habits: [_habit('sleep-window')]));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Menu'));
+    await tester.tap(find.text('More'));
     await tester.pumpAndSettle();
-    expect(find.text('Library'), findsOneWidget);
     expect(find.text('Queue'), findsOneWidget);
     expect(find.text('Shopping'), findsOneWidget);
-    expect(find.text('Progress'), findsOneWidget);
-
-    await tester.tap(find.text('Library'));
-    await tester.pumpAndSettle();
-    expect(find.text('LIBRARY'), findsOneWidget);
+    expect(find.text('Library'), findsNothing);
   });
 
   testWidgets('an eligible active habit shows the graduation nudge',
