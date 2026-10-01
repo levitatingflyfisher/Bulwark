@@ -1,0 +1,2131 @@
+[
+  {
+    "id": "consistent-sleep-schedule",
+    "title": "Consistent sleep schedule",
+    "action": "Wake at the same time every day, including weekends, and protect a 7-9 hour sleep window.",
+    "category": "sleep",
+    "trigger": {
+      "anchor": "wake",
+      "note": "same wake time daily, even on weekends"
+    },
+    "mechanism": "The circadian clock anchors to a fixed wake time, and adequate sleep is the keystone for immunity, cognition, metabolism, and mood.",
+    "evidence": "rct",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "free",
+      "note": null
+    },
+    "shopping": null,
+    "safety": null,
+    "details": "Your body clock anchors to wake time more than bedtime, so a fixed wake time (even on weekends) stabilizes the whole rhythm; 'social jet lag' from sleeping in 2+ hours produces metabolic disruption like crossing time zones. Sleep duration is the single highest-leverage variable here: controlled challenge studies show people sleeping under 6 hours are several times more likely to catch a cold when exposed to a virus, and short sleep measurably lowers insulin sensitivity and next-day cognition. No supplement compensates for insufficient sleep.",
+    "defaultPhase": 1,
+    "tags": []
+  },
+  {
+    "id": "morning-sunlight",
+    "title": "Morning sunlight",
+    "action": "Get 10-30 minutes of outdoor daylight within 30-60 minutes of waking, not through glass.",
+    "category": "sleep",
+    "trigger": {
+      "anchor": "wake",
+      "note": "within 30-60 min of waking"
+    },
+    "mechanism": "Bright morning light triggers a cortisol pulse and sets the circadian clock, programming sleepiness 14-16 hours later.",
+    "evidence": "mechanistic",
+    "timeCostMinutes": 15,
+    "cost": {
+      "tier": "free",
+      "note": null
+    },
+    "shopping": null,
+    "safety": null,
+    "details": "Direct outdoor light (not filtered through a window) is far brighter than indoor lighting and is the strongest signal for entraining the sleep-wake cycle. Aim for roughly 10 minutes on a sunny day, 20-30 minutes when overcast. The mechanism is well understood; downstream effects on sleep, mood, and cortisol rhythm follow from setting the clock early.",
+    "defaultPhase": 1,
+    "tags": []
+  },
+  {
+    "id": "no-rinse-after-brushing",
+    "title": "Don't rinse after brushing",
+    "action": "Spit out toothpaste after brushing but don't rinse with water.",
+    "category": "dental",
+    "trigger": {
+      "anchor": "brushing",
+      "note": "after every brushing"
+    },
+    "mechanism": "Fluoride needs prolonged contact time to remineralize enamel, and rinsing washes the active ingredient away immediately.",
+    "evidence": "mechanistic",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "free",
+      "note": null
+    },
+    "shopping": null,
+    "safety": null,
+    "details": "This is a negative-effort change: you simply stop doing something. Most people rinse reflexively right after brushing and remove the fluoride before it can act on the enamel surface. Leaving a thin film in place extends contact time and remineralization.",
+    "defaultPhase": 1,
+    "tags": []
+  },
+  {
+    "id": "floss-before-brushing",
+    "title": "Floss before brushing",
+    "action": "Floss first, then brush, so fluoride reaches the newly exposed surfaces.",
+    "category": "dental",
+    "trigger": {
+      "anchor": "brushing",
+      "note": "floss immediately before brushing"
+    },
+    "mechanism": "Flossing first clears plaque from between teeth so fluoride toothpaste can reach the interproximal surfaces where decay actually starts.",
+    "evidence": "observational",
+    "timeCostMinutes": 2,
+    "cost": {
+      "tier": "free",
+      "note": null
+    },
+    "shopping": null,
+    "safety": null,
+    "details": "The common brush-then-floss order leaves fluoride on the easy surfaces and skips the between-teeth gaps where cavities begin. A 2018 clinical study found floss-first resulted in significantly greater interproximal fluoride retention. Order matters more than most people assume.",
+    "defaultPhase": 3,
+    "tags": []
+  },
+  {
+    "id": "tongue-scraping",
+    "title": "Tongue scraping",
+    "action": "Scrape your tongue once daily to remove the bacterial biofilm on its surface.",
+    "category": "dental",
+    "trigger": {
+      "anchor": "brushing",
+      "note": "part of the morning brushing routine"
+    },
+    "mechanism": "50-90% of bad breath comes from anaerobic bacteria on the tongue's dorsal surface, which brushing barely disturbs.",
+    "evidence": "observational",
+    "timeCostMinutes": 1,
+    "cost": {
+      "tier": "oneTimeUnder50",
+      "note": "~$5 once"
+    },
+    "shopping": {
+      "item": "Tongue scraper",
+      "criteria": "stainless-steel scraper, lasts years",
+      "recurring": false,
+      "where": "pharmacy"
+    },
+    "safety": null,
+    "details": "A dedicated scraper removes the biofilm and volatile sulfur compounds that produce halitosis, and modestly lowers overall oral bacterial load, which matters for everything downstream of oral health. Cheap, durable, and takes seconds.",
+    "defaultPhase": 3,
+    "tags": []
+  },
+  {
+    "id": "electric-toothbrush",
+    "title": "Electric toothbrush",
+    "action": "Switch to an electric toothbrush and let it do the work with light pressure.",
+    "category": "dental",
+    "trigger": {
+      "anchor": "brushing",
+      "note": "at each brushing"
+    },
+    "mechanism": "The brush makes tens of thousands of movements per minute and compensates for technique errors, removing more plaque than manual brushing.",
+    "evidence": "rct",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "oneTimeUnder50",
+      "note": "~$30 once"
+    },
+    "shopping": {
+      "item": "Electric toothbrush",
+      "criteria": "oscillating-rotating type with a pressure sensor; a basic model is fine",
+      "recurring": false,
+      "where": "pharmacy"
+    },
+    "safety": null,
+    "details": "A Cochrane review of randomized trials found electric brushes remove about 21% more plaque and reduce gingivitis about 11% versus manual. Oscillating-rotating heads slightly outperform sonic in most studies. A one-time purchase with years of benefit.",
+    "defaultPhase": 6,
+    "tags": []
+  },
+  {
+    "id": "water-flosser",
+    "title": "Water flosser",
+    "action": "Use a water flosser daily, on its own or alongside string floss.",
+    "category": "dental",
+    "trigger": {
+      "anchor": "brushing",
+      "note": "evening, before or with brushing"
+    },
+    "mechanism": "A pressurized water stream flushes debris from the gumline, and its ease of use drives far better daily compliance than string floss.",
+    "evidence": "observational",
+    "timeCostMinutes": 2,
+    "cost": {
+      "tier": "oneTimeUnder50",
+      "note": "~$40 once"
+    },
+    "shopping": {
+      "item": "Water flosser",
+      "criteria": "countertop or cordless unit with adjustable pressure",
+      "recurring": false,
+      "where": "online"
+    },
+    "safety": null,
+    "details": "Several studies show comparable plaque removal and superior reduction in gingivitis and bleeding versus string floss, with compliance as the key advantage: most people will actually use one daily. It complements string floss rather than necessarily replacing it.",
+    "defaultPhase": 7,
+    "tags": []
+  },
+  {
+    "id": "hydroxyapatite-toothpaste",
+    "title": "Hydroxyapatite toothpaste",
+    "action": "Use hydroxyapatite toothpaste in the morning and fluoride toothpaste at night.",
+    "category": "dental",
+    "trigger": {
+      "anchor": "brushing",
+      "note": "hydroxyapatite AM, fluoride PM"
+    },
+    "mechanism": "Hydroxyapatite deposits biocompatible mineral directly onto enamel, complementing fluoride's remineralization by a different route.",
+    "evidence": "observational",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "recurring",
+      "note": "~$8-12/mo"
+    },
+    "shopping": {
+      "item": "Hydroxyapatite toothpaste",
+      "criteria": "nano-hydroxyapatite as the active ingredient; pair with a standard fluoride toothpaste for nights",
+      "recurring": true,
+      "where": "pharmacy"
+    },
+    "safety": null,
+    "details": "The evidence for hydroxyapatite is strong but shallower than fluoride's: most comparative studies show similar efficacy, but fluoride has roughly a 70-year evidence base across many populations versus about 20 years for hydroxyapatite. The honest best approach is to use both mechanisms: hydroxyapatite in the morning (when you'll eat or drink soon, so short contact time is fine) and fluoride at night (longer overnight contact maximizes remineralization). It is a complement, not a proven superior replacement.",
+    "defaultPhase": 8,
+    "tags": []
+  },
+  {
+    "id": "xylitol-gum",
+    "title": "Xylitol gum after meals",
+    "action": "Chew xylitol gum after meals, aiming for 6-10g of xylitol across the day.",
+    "category": "dental",
+    "trigger": {
+      "anchor": "postMeal",
+      "note": "after meals and snacks"
+    },
+    "mechanism": "Cavity-causing S. mutans metabolizes xylitol but can't use it for energy, so the bacteria expend resources and lose ground over time.",
+    "evidence": "observational",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "recurring",
+      "note": "~$5-10/mo"
+    },
+    "shopping": {
+      "item": "Xylitol gum",
+      "criteria": "xylitol listed as the first ingredient, roughly 1g per piece",
+      "recurring": true,
+      "where": "grocery"
+    },
+    "safety": null,
+    "details": "The therapeutic dose is about 6-10g per day spread across several exposures, which is roughly 6-10 pieces of gum since most contain about 1g each. Chewing after meals also stimulates saliva, which buffers acid. (Keep xylitol away from dogs; it is toxic to them.)",
+    "defaultPhase": 8,
+    "tags": []
+  },
+  {
+    "id": "wait-to-brush-after-eating",
+    "title": "Wait before brushing",
+    "action": "Wait about 30 minutes after acidic food or drink before brushing.",
+    "category": "dental",
+    "trigger": {
+      "anchor": "postMeal",
+      "note": "delay brushing ~30 min after eating"
+    },
+    "mechanism": "Acid temporarily softens enamel, and brushing the softened surface abrades it.",
+    "evidence": "mechanistic",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "free",
+      "note": null
+    },
+    "shopping": null,
+    "safety": null,
+    "details": "After acidic food or drink, rinse with water or chew xylitol gum right away to neutralize the mouth, then brush later once the enamel has re-hardened. Brushing immediately on softened enamel wears it down over time.",
+    "defaultPhase": 7,
+    "tags": []
+  },
+  {
+    "id": "gentle-brushing",
+    "title": "Don't brush too hard",
+    "action": "Brush with light pressure and let the bristles do the work.",
+    "category": "dental",
+    "trigger": {
+      "anchor": "brushing",
+      "note": "at each brushing"
+    },
+    "mechanism": "Aggressive brushing causes gum recession, which is irreversible without grafting surgery and exposes decay-prone root surfaces.",
+    "evidence": "mechanistic",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "free",
+      "note": null
+    },
+    "shopping": null,
+    "safety": null,
+    "details": "Most people press too hard, especially with a manual brush. If your bristles splay out within a month, you're using too much force. Many electric brushes include a pressure sensor to help calibrate.",
+    "defaultPhase": 6,
+    "tags": []
+  },
+  {
+    "id": "caffeine-cutoff",
+    "title": "Caffeine cutoff",
+    "action": "Have your last caffeine at least 10 hours before bed.",
+    "category": "sleep",
+    "trigger": {
+      "anchor": "midday",
+      "note": "no caffeine within ~10 hrs of bedtime"
+    },
+    "mechanism": "Caffeine's quarter-life is 10-12 hours, so an early-afternoon coffee still has meaningful stimulant effect at midnight.",
+    "evidence": "mechanistic",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "free",
+      "note": null
+    },
+    "shopping": null,
+    "safety": null,
+    "details": "Half-life is about 5-6 hours and quarter-life about 10-12, so a 2 PM coffee can leave roughly a quarter of the dose active near midnight. Many people who believe they 'sleep fine with caffeine' are adapted to degraded sleep and have no counterfactual. If you don't consume caffeine at all, this one is already handled.",
+    "defaultPhase": 2,
+    "tags": []
+  },
+  {
+    "id": "cool-bedroom",
+    "title": "Cool bedroom",
+    "action": "Set the bedroom to 65-68°F for sleep.",
+    "category": "sleep",
+    "trigger": {
+      "anchor": "bed",
+      "note": "cool room, warm blankets"
+    },
+    "mechanism": "Core body temperature must drop about 2°F to initiate sleep, and a cool room enables that drop.",
+    "evidence": "mechanistic",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "free",
+      "note": "thermostat only"
+    },
+    "shopping": null,
+    "safety": null,
+    "details": "Cool the room and keep warm blankets so the body's core can shed heat while you stay comfortable. This is one of the simplest sleep-onset levers.",
+    "defaultPhase": 2,
+    "tags": []
+  },
+  {
+    "id": "no-late-eating",
+    "title": "Don't eat before bed",
+    "action": "Stop eating 2-3 hours before bedtime.",
+    "category": "sleep",
+    "trigger": {
+      "anchor": "evening",
+      "note": "finish eating 2-3 hrs before bed"
+    },
+    "mechanism": "Late eating raises core temperature and activates digestion when the body should be winding down, degrading sleep architecture and worsening reflux.",
+    "evidence": "mechanistic",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "free",
+      "note": null
+    },
+    "shopping": null,
+    "safety": null,
+    "details": "Eating late opposes the core-temperature drop needed for sleep onset and increases acid reflux risk. Because insulin sensitivity follows a circadian rhythm, the same meal produces a worse glycemic response when eaten late at night. If bedtime is 10 PM, aim to finish dinner by about 7:30-8:00 PM.",
+    "defaultPhase": 6,
+    "tags": []
+  },
+  {
+    "id": "warm-shower-before-bed",
+    "title": "Warm shower before bed",
+    "action": "Take a warm shower or bath about 90 minutes before bed.",
+    "category": "sleep",
+    "trigger": {
+      "anchor": "evening",
+      "note": "~90 min before bed"
+    },
+    "mechanism": "Warming the skin causes vasodilation that dumps core heat faster, accelerating the core-temperature drop that initiates sleep.",
+    "evidence": "mechanistic",
+    "timeCostMinutes": 10,
+    "cost": {
+      "tier": "free",
+      "note": null
+    },
+    "shopping": null,
+    "safety": null,
+    "details": "Counterintuitively, warming the surface of the skin helps you cool at the core: blood vessels open at the extremities and shed heat. About 90 minutes is the sweet spot for peak core cooling before you get into bed.",
+    "defaultPhase": 6,
+    "tags": []
+  },
+  {
+    "id": "magnesium-glycinate",
+    "title": "Magnesium before bed",
+    "action": "Take 200-400mg of elemental magnesium (glycinate or threonate) before bed.",
+    "category": "sleep",
+    "trigger": {
+      "anchor": "bed",
+      "note": "30-60 min before sleep"
+    },
+    "mechanism": "Most adults are deficient, and magnesium supports relaxation, muscle recovery, and hundreds of enzymatic reactions.",
+    "evidence": "observational",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "recurring",
+      "note": "~$8-12/mo"
+    },
+    "shopping": {
+      "item": "Magnesium glycinate",
+      "criteria": "glycinate or malate form, 200-400mg elemental; avoid oxide (laxative, poorly absorbed)",
+      "recurring": true,
+      "where": "pharmacy"
+    },
+    "safety": null,
+    "details": "Glycinate is favored for relaxation and sleep; threonate crosses the blood-brain barrier but delivers less elemental magnesium per dose and has no direct sleep studies (its case is extrapolated from anxiolytic and neurological effects). Avoid the oxide form. The sleep evidence is suggestive rather than strong, but deficiency is common and correction is low-risk.",
+    "defaultPhase": 4,
+    "tags": []
+  },
+  {
+    "id": "glycine-before-bed",
+    "title": "Glycine before bed",
+    "action": "Dissolve 3g of glycine in water and drink it before bed.",
+    "category": "sleep",
+    "trigger": {
+      "anchor": "bed",
+      "note": "30-60 min before sleep"
+    },
+    "mechanism": "Glycine lowers core body temperature via peripheral vasodilation, reinforcing the sleep-onset signal.",
+    "evidence": "rct",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "recurring",
+      "note": "~$5-8/mo"
+    },
+    "shopping": {
+      "item": "Glycine powder",
+      "criteria": "bulk glycine powder, 3g per dose",
+      "recurring": true,
+      "where": "online"
+    },
+    "safety": null,
+    "details": "Human trials show improved subjective sleep quality, reduced daytime sleepiness, and better next-day cognition at about 3g taken 30-60 minutes before bed. It tastes slightly sweet and dissolves in water, and it's one of the best cost-to-benefit ratios in supplements. It works through a different mechanism than magnesium, so the two are complementary rather than redundant.",
+    "defaultPhase": 4,
+    "tags": []
+  },
+  {
+    "id": "side-sleeping",
+    "title": "Sleep on your side",
+    "action": "Default to side sleeping instead of your back.",
+    "category": "sleep",
+    "trigger": {
+      "anchor": "bed",
+      "note": "settle onto your side"
+    },
+    "mechanism": "Side sleeping reduces sleep apnea severity, improves brain glymphatic clearance, and lowers reflux versus lying on your back.",
+    "evidence": "mechanistic",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "free",
+      "note": null
+    },
+    "shopping": null,
+    "safety": null,
+    "details": "The left side is slightly better for reflux because stomach anatomy keeps the gastroesophageal junction above the acid line. If you snore, side sleeping helps. For people with meaningful nighttime reflux, elevating the head of the bed with risers under the headboard legs (not stacked pillows, which kink the neck) uses gravity to keep acid down.",
+    "defaultPhase": 6,
+    "tags": []
+  },
+  {
+    "id": "weighted-blanket",
+    "title": "Weighted blanket",
+    "action": "Try a weighted blanket around 10% of your body weight, especially for anxious sleep.",
+    "category": "sleep",
+    "trigger": {
+      "anchor": "bed",
+      "note": "use nightly"
+    },
+    "mechanism": "Deep-pressure stimulation increases serotonin and melatonin and decreases cortisol.",
+    "evidence": "observational",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "oneTimeUnder200",
+      "note": "~$50-80 once"
+    },
+    "shopping": {
+      "item": "Weighted blanket",
+      "criteria": "about 10% of your body weight",
+      "recurring": false,
+      "where": "online"
+    },
+    "safety": null,
+    "details": "The benefit is most pronounced for anxiety-driven insomnia; a small study found weighted blankets reduced insomnia severity and improved sleep maintenance. If you already sleep well, expect marginal effect. Not for infants or very young children.",
+    "defaultPhase": 8,
+    "tags": []
+  },
+  {
+    "id": "evening-light-dimming",
+    "title": "Dim lights after sunset",
+    "action": "Dim household lighting and switch to warm lamps in the 2 hours before bed.",
+    "category": "sleep",
+    "trigger": {
+      "anchor": "evening",
+      "note": "dim lights ~2 hrs before bed"
+    },
+    "mechanism": "Bright overhead light suppresses melatonin, and the responsible retinal cells react to overall brightness, not just screens.",
+    "evidence": "mechanistic",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "free",
+      "note": null
+    },
+    "shopping": null,
+    "safety": null,
+    "details": "Overhead room lighting is a major melatonin suppressor, so dimming the house and using warm-toned lamps matters as much as, or more than, blue-light glasses, which a 2023 Cochrane review found have no reliable benefit. If you spend money on evening comfort, spend it on dimmer, warmer lighting rather than glasses.",
+    "defaultPhase": 6,
+    "tags": []
+  },
+  {
+    "id": "limit-alcohol-sleep",
+    "title": "Limit alcohol for sleep",
+    "action": "Drink less alcohol, and if you drink, finish earlier in the evening.",
+    "category": "sleep",
+    "trigger": {
+      "anchor": "evening",
+      "note": "earlier is better than later"
+    },
+    "mechanism": "Even 1-2 drinks reduce REM sleep and increase fragmentation, and stimulatory metabolic byproducts drive the 3-4 AM wake-up.",
+    "evidence": "mechanistic",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "free",
+      "note": null
+    },
+    "shopping": null,
+    "safety": null,
+    "details": "Alcohol sedates rather than producing true sleep; brain activity under sedation is measurably different, and acetaldehyde is stimulatory, which is why alcohol-disrupted nights often involve waking at 3-4 AM. Sedation is not sleep. If you drink, earlier in the evening is less disruptive.",
+    "defaultPhase": 7,
+    "tags": []
+  },
+  {
+    "id": "post-meal-walk",
+    "title": "Post-meal walk",
+    "action": "Walk 10-15 minutes immediately after eating.",
+    "category": "metabolic",
+    "trigger": {
+      "anchor": "postMeal",
+      "note": "start walking right after the meal"
+    },
+    "mechanism": "Walking muscles pull glucose from the blood partly without insulin, blunting the post-meal spike before it peaks.",
+    "evidence": "rct",
+    "timeCostMinutes": 12,
+    "cost": {
+      "tier": "free",
+      "note": null
+    },
+    "shopping": null,
+    "safety": null,
+    "details": "Immediate walking catches the glucose spike (which peaks 30-60 minutes after eating), and a 10-minute walk started right away outperforms a longer walk started later for peak glucose reduction. Studies show a 10-20% reduction in the spike. Start with dinner, then expand to more meals as it becomes habit; it stacks well with rucking.",
+    "defaultPhase": 2,
+    "tags": []
+  },
+  {
+    "id": "food-ordering",
+    "title": "Food ordering",
+    "action": "At each meal eat vegetables/fiber first, protein and fat second, starches last.",
+    "category": "metabolic",
+    "trigger": {
+      "anchor": "custom",
+      "note": "at the start of each meal"
+    },
+    "mechanism": "Fiber eaten first forms a physical mesh that slows glucose absorption from the carbs that follow.",
+    "evidence": "rct",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "free",
+      "note": null
+    },
+    "shopping": null,
+    "safety": null,
+    "details": "Eating the same meal in this order produces a 30-40% smaller glucose spike in some studies, with no change to what you eat. Costs nothing and requires only sequencing your plate.",
+    "defaultPhase": 4,
+    "tags": []
+  },
+  {
+    "id": "acv-before-carbs",
+    "title": "Vinegar before carbs",
+    "action": "Drink 1-2 tbsp of diluted apple cider vinegar before carb-heavy meals.",
+    "category": "metabolic",
+    "trigger": {
+      "anchor": "custom",
+      "note": "before a carb-heavy meal"
+    },
+    "mechanism": "Acetic acid slows gastric emptying so glucose enters the bloodstream more gradually.",
+    "evidence": "rct",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "recurring",
+      "note": "~$5 a bottle, lasts a long time"
+    },
+    "shopping": {
+      "item": "Apple cider vinegar",
+      "criteria": "any apple cider vinegar; always dilute in water",
+      "recurring": true,
+      "where": "grocery"
+    },
+    "safety": "Always dilute in water and consider using a straw to protect tooth enamel.",
+    "details": "Human studies show 20-30% reductions in post-meal glucose spikes with 1-2 tablespoons in water before a carb-heavy meal. Undiluted vinegar can erode enamel, so dilute and consider a straw.",
+    "defaultPhase": 8,
+    "tags": []
+  },
+  {
+    "id": "resistant-starch",
+    "title": "Resistant starch",
+    "action": "Cook starches, cool them in the fridge, then reheat before eating.",
+    "category": "metabolic",
+    "trigger": {
+      "anchor": "custom",
+      "note": "cook, cool, then reheat"
+    },
+    "mechanism": "Cooling cooked starch retrogrades it into crystals that resist small-intestine digestion and feed gut bacteria into anti-inflammatory butyrate.",
+    "evidence": "mechanistic",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "free",
+      "note": null
+    },
+    "shopping": null,
+    "safety": null,
+    "details": "The effect is real but variable and food-dependent: rice retrogrades well (meaningful glycemic reduction), potatoes moderately, pasta less so, and reheating partially reverses the retrograde. Don't expect dramatic results from every leftover. It is still free and worth doing for the prebiotic butyrate benefit alone.",
+    "defaultPhase": 7,
+    "tags": []
+  },
+  {
+    "id": "overnight-fast",
+    "title": "12-hour overnight fast",
+    "action": "Keep a minimum 12-hour overnight window with no food.",
+    "category": "metabolic",
+    "trigger": {
+      "anchor": "dinner",
+      "note": "e.g., finish by 8 PM, first meal 8 AM"
+    },
+    "mechanism": "A 12-hour gap lets digestion complete, insulin normalize, and cellular cleanup (autophagy) begin.",
+    "evidence": "mechanistic",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "free",
+      "note": null
+    },
+    "shopping": null,
+    "safety": null,
+    "details": "The old advice to graze every 2-3 hours 'for metabolism' was never well supported; metabolism doesn't stall over a 12-hour fast. Whether extending past 12 hours adds benefit is more debated, but the base 12-hour overnight fast is well supported and free.",
+    "defaultPhase": 7,
+    "tags": []
+  },
+  {
+    "id": "chew-thoroughly",
+    "title": "Chew thoroughly",
+    "action": "Chew each bite fully before swallowing.",
+    "category": "metabolic",
+    "trigger": {
+      "anchor": "custom",
+      "note": "at every meal"
+    },
+    "mechanism": "Chewing starts starch digestion, increases surface area for downstream enzymes, and slows eating so satiety hormones can signal.",
+    "evidence": "mechanistic",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "free",
+      "note": null
+    },
+    "shopping": null,
+    "safety": null,
+    "details": "Salivary amylase begins digestion in the mouth, and thorough chewing improves nutrient absorption and reduces gas. It also slows eating speed, giving satiety hormones (CCK, GLP-1, PYY) their roughly 20-minute window to signal fullness before you overeat.",
+    "defaultPhase": 6,
+    "tags": []
+  },
+  {
+    "id": "hydrate-on-waking",
+    "title": "Hydrate on waking",
+    "action": "Drink about 16 oz of water on waking, before coffee.",
+    "category": "metabolic",
+    "trigger": {
+      "anchor": "wake",
+      "note": "before your first coffee"
+    },
+    "mechanism": "You wake mildly dehydrated after 6-8 hours of water loss through breathing and sweat, which affects cognition, energy, and bowel regularity.",
+    "evidence": "mechanistic",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "free",
+      "note": null
+    },
+    "shopping": null,
+    "safety": null,
+    "details": "Rehydrating first thing supports morning cognition, energy, and regularity. A pinch of salt and a squeeze of lemon adds electrolytes and flavor if you want them.",
+    "defaultPhase": 3,
+    "tags": []
+  },
+  {
+    "id": "protein-breakfast",
+    "title": "Protein at breakfast",
+    "action": "Eat 30-50g of protein at breakfast.",
+    "category": "nutrition",
+    "trigger": {
+      "anchor": "breakfast",
+      "note": "30-50g protein in the first meal"
+    },
+    "mechanism": "Protein is the most satiating macronutrient and has the highest thermic effect, reducing total daily intake.",
+    "evidence": "rct",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "recurring",
+      "note": "moderate grocery cost"
+    },
+    "shopping": null,
+    "safety": null,
+    "details": "About 25-30% of protein calories are burned in digestion versus far less for carbs and fat, and most people badly under-eat protein at breakfast (a carb-heavy meal of cereal, toast, and juice). Front-loading protein sustains satiety and reduces total daily intake. Practical sources: eggs, Greek yogurt, cottage cheese, a protein shake.",
+    "defaultPhase": 6,
+    "tags": []
+  },
+  {
+    "id": "fiber",
+    "title": "Fiber 25-35g/day",
+    "action": "Reach 25-35g of fiber daily, supplementing with psyllium husk if short.",
+    "category": "nutrition",
+    "trigger": {
+      "anchor": "custom",
+      "note": "aim 25-35g/day"
+    },
+    "mechanism": "Fiber feeds gut bacteria, slows glucose absorption, increases satiety, and improves regularity.",
+    "evidence": "rct",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "recurring",
+      "note": "~$5-8/mo if supplementing"
+    },
+    "shopping": {
+      "item": "Psyllium husk",
+      "criteria": "plain psyllium husk powder; start with a small dose",
+      "recurring": true,
+      "where": "pharmacy"
+    },
+    "safety": "Increase intake gradually or your GI tract will object; take fiber supplements with plenty of water.",
+    "details": "The average intake is about 15g/day against a 25-35g target. Fiber is consistently associated with reduced all-cause mortality and has trial-backed metabolic and satiety effects. Psyllium husk is the easiest supplement; ramp up slowly.",
+    "defaultPhase": 8,
+    "tags": []
+  },
+  {
+    "id": "fermented-foods",
+    "title": "Fermented foods",
+    "action": "Eat 2-3 servings of live-culture fermented foods per day.",
+    "category": "nutrition",
+    "trigger": {
+      "anchor": "custom",
+      "note": "2-3 servings daily"
+    },
+    "mechanism": "Live-culture foods increase gut microbiome diversity and reduce inflammatory markers.",
+    "evidence": "rct",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "recurring",
+      "note": "moderate grocery cost"
+    },
+    "shopping": {
+      "item": "Live-culture fermented foods",
+      "criteria": "labeled 'live and active cultures'; unpasteurized (yogurt, kimchi, sauerkraut, kefir, kombucha)",
+      "recurring": true,
+      "where": "grocery"
+    },
+    "safety": null,
+    "details": "A 2021 Stanford randomized diet study found a high-fermented-food diet raised microbiome diversity and lowered inflammatory markers more than a high-fiber diet alone. The cultures must be live: pasteurized 'fermented' foods are inert, so check labels.",
+    "defaultPhase": 8,
+    "tags": []
+  },
+  {
+    "id": "cooking-oil-smoke-point",
+    "title": "Match oil to heat",
+    "action": "Use high-smoke-point oils for high heat and save delicate oils for low heat or finishing.",
+    "category": "nutrition",
+    "trigger": {
+      "anchor": "custom",
+      "note": "pick the oil to the cooking temperature"
+    },
+    "mechanism": "Heating oil past its smoke point generates aldehydes and free radicals.",
+    "evidence": "mechanistic",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "recurring",
+      "note": "grocery cost"
+    },
+    "shopping": {
+      "item": "High-smoke-point cooking oil",
+      "criteria": "avocado oil or ghee for high heat; keep extra-virgin olive oil for low heat and finishing",
+      "recurring": true,
+      "where": "grocery"
+    },
+    "safety": null,
+    "details": "High heat: avocado oil, ghee, refined coconut oil. Medium: butter, lard, refined olive oil. Low heat and finishing: extra-virgin olive oil, sesame oil, nut oils. EVOO is healthy but degrades at frying temperatures, which is why Mediterranean cooking uses it for dressings and low-heat work, not deep frying.",
+    "defaultPhase": 7,
+    "tags": []
+  },
+  {
+    "id": "cast-iron-cooking",
+    "title": "Cast iron cooking",
+    "action": "Cook in cast iron, especially acidic foods.",
+    "category": "nutrition",
+    "trigger": {
+      "anchor": "custom",
+      "note": "use for regular cooking"
+    },
+    "mechanism": "Acidic foods leach a modest amount of dietary iron from the pan.",
+    "evidence": "mechanistic",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "oneTimeUnder50",
+      "note": "~$25 once"
+    },
+    "shopping": {
+      "item": "Cast iron skillet",
+      "criteria": "pre-seasoned; any size",
+      "recurring": false,
+      "where": "online"
+    },
+    "safety": null,
+    "details": "The iron fortification is small per meal but compounds over years, and cast iron lasts effectively forever while developing a nonstick surface with use. A worthwhile one-time buy.",
+    "defaultPhase": 7,
+    "tags": []
+  },
+  {
+    "id": "cooked-tomatoes-lycopene",
+    "title": "Cook tomatoes with fat",
+    "action": "Cook tomatoes with a little oil to get more lycopene.",
+    "category": "nutrition",
+    "trigger": {
+      "anchor": "custom",
+      "note": "when preparing tomatoes"
+    },
+    "mechanism": "Heat plus fat makes tomato lycopene dramatically more bioavailable than raw.",
+    "evidence": "mechanistic",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "free",
+      "note": null
+    },
+    "shopping": null,
+    "safety": null,
+    "details": "Heat breaks down cell walls and converts lycopene to a more absorbable form, and because lycopene is fat-soluble, cooking with oil increases uptake further. Sauce, paste, and roasted tomatoes beat raw for usable lycopene.",
+    "defaultPhase": 7,
+    "tags": []
+  },
+  {
+    "id": "pepper-with-turmeric",
+    "title": "Black pepper with turmeric",
+    "action": "Add black pepper whenever you use turmeric.",
+    "category": "nutrition",
+    "trigger": {
+      "anchor": "custom",
+      "note": "pair the two when cooking"
+    },
+    "mechanism": "Piperine in black pepper increases absorption of turmeric's curcumin by roughly 2,000%.",
+    "evidence": "mechanistic",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "free",
+      "note": null
+    },
+    "shopping": null,
+    "safety": null,
+    "details": "Without piperine, curcumin is barely absorbed, which is why traditional Indian cooking pairs the two. If you supplement curcumin, choose a formula that includes piperine.",
+    "defaultPhase": 7,
+    "tags": []
+  },
+  {
+    "id": "soak-grains-legumes",
+    "title": "Soak grains and legumes",
+    "action": "Soak grains and legumes overnight before cooking.",
+    "category": "nutrition",
+    "trigger": {
+      "anchor": "custom",
+      "note": "soak overnight before cooking"
+    },
+    "mechanism": "Soaking reduces phytic acid and lectins, improving mineral absorption and digestive comfort.",
+    "evidence": "traditional",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "free",
+      "note": null
+    },
+    "shopping": null,
+    "safety": null,
+    "details": "Phytic acid binds minerals and lectins can irritate the gut; pre-industrial food prep always included an overnight soak (often with an acidic medium) that we dropped for convenience. If you eat a lot of beans, lentils, or whole grains, soaking is a near-zero-effort way to improve mineral bioavailability and comfort. Formal evidence is modest, but the traditional rationale is sound.",
+    "defaultPhase": 7,
+    "tags": []
+  },
+  {
+    "id": "vitamin-d3-k2",
+    "title": "Vitamin D3 + K2",
+    "action": "Take 2,000-5,000 IU vitamin D3 with 100-200mcg K2 (MK-7) daily.",
+    "category": "nutrition",
+    "trigger": {
+      "anchor": "breakfast",
+      "note": "with a meal containing fat"
+    },
+    "mechanism": "D3 raises calcium absorption and K2 directs that calcium into bone and away from arteries.",
+    "evidence": "observational",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "recurring",
+      "note": "~$10-15/mo"
+    },
+    "shopping": {
+      "item": "Vitamin D3 + K2",
+      "criteria": "D3 2,000-5,000 IU with K2 in the MK-7 form 100-200mcg; take with a fat-containing meal",
+      "recurring": true,
+      "where": "pharmacy"
+    },
+    "safety": "Fat-soluble vitamins accumulate; if supplementing at the higher end, confirm your level with bloodwork rather than guessing.",
+    "details": "Most adults are deficient in vitamin D, with a common target of 40-60 ng/mL. Taking D3 without K2 can, in theory, push mobilized calcium toward arterial rather than skeletal deposition. Supplement trials for D are mixed, so this leans on deficiency-correction reasoning. Food sources of K2 (MK-7) include natto (by far the richest), aged/hard cheeses, egg yolks, butter from grass-fed cows, and liver; the supplement is insurance if diet is inconsistent. Brief, non-burning sun exposure is also a natural D source.",
+    "defaultPhase": 5,
+    "tags": []
+  },
+  {
+    "id": "creatine",
+    "title": "Creatine monohydrate",
+    "action": "Take 3-5g of creatine monohydrate daily.",
+    "category": "nutrition",
+    "trigger": {
+      "anchor": "custom",
+      "note": "3-5g daily, timing doesn't matter"
+    },
+    "mechanism": "Creatine recycles ATP, supporting strength, muscle mass, and recovery, and brain cells under energy stress take up more of it.",
+    "evidence": "rct",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "recurring",
+      "note": "~$5-8/mo"
+    },
+    "shopping": {
+      "item": "Creatine monohydrate",
+      "criteria": "plain third-party-tested monohydrate; no need for fancier forms",
+      "recurring": true,
+      "where": "online"
+    },
+    "safety": null,
+    "details": "The strength, muscle, and recovery benefits are RCT-solid; it is the most studied supplement in sports science. The cognitive benefits are more qualified: strongest in vegetarians (lower baseline brain creatine) and under acute sleep deprivation or stress, and probably modest for well-rested omnivores eating adequate protein. For someone running on fragmented sleep, it is one of the more directly applicable supplements. Timing doesn't matter; levels saturate in 3-4 weeks with no loading needed. Raised creatinine on a blood test is expected and is not kidney damage.",
+    "defaultPhase": 6,
+    "tags": []
+  },
+  {
+    "id": "omega-3",
+    "title": "Omega-3 (EPA/DHA)",
+    "action": "Take about 1g combined EPA+DHA daily from a third-party-tested fish oil.",
+    "category": "nutrition",
+    "trigger": {
+      "anchor": "custom",
+      "note": "1-3g EPA+DHA daily"
+    },
+    "mechanism": "EPA/DHA shift the omega-6:3 balance toward an anti-inflammatory profile.",
+    "evidence": "observational",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "recurring",
+      "note": "~$15-25/mo"
+    },
+    "shopping": {
+      "item": "Fish oil (EPA/DHA)",
+      "criteria": "third-party-tested (IFOS or similar), ~1g combined EPA+DHA per day; algae oil if vegetarian",
+      "recurring": true,
+      "where": "pharmacy"
+    },
+    "safety": null,
+    "details": "Modern seed-oil-heavy diets skew the omega-6:3 ratio toward pro-inflammatory, and supplementing EPA/DHA nudges it back. Cardiovascular RCT results are mixed and the neuroprotective evidence is only suggestive, so this is a reasonable but not slam-dunk addition. Quality matters: choose third-party-tested oil to avoid rancid product, and algae oil is the vegetarian source.",
+    "defaultPhase": 8,
+    "tags": []
+  },
+  {
+    "id": "electrolytes",
+    "title": "Electrolytes",
+    "action": "If you eat whole foods and sweat or eat low-carb, don't fear sodium; add a pinch of salt or a sugar-free electrolyte mix.",
+    "category": "nutrition",
+    "trigger": {
+      "anchor": "custom",
+      "note": "a pinch of salt in morning water if active/low-carb"
+    },
+    "mechanism": "Active and low-carb people excrete more sodium, and inadequate sodium causes low blood pressure, dizziness, headaches, and fatigue.",
+    "evidence": "mechanistic",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "recurring",
+      "note": "~$5-15/mo if using a mix"
+    },
+    "shopping": {
+      "item": "Electrolyte mix",
+      "criteria": "no added sugar; provides sodium, potassium, and magnesium",
+      "recurring": true,
+      "where": "grocery"
+    },
+    "safety": null,
+    "details": "The optimal sodium range is genuinely debated, and earlier claims of a settled 'ideal' intake were overstated (the studies behind them have reverse-causation and methodology problems). The honest position: on a whole-foods diet with exercise, don't go out of your way to restrict salt, but don't mega-dose it either. Watch for symptoms of too little (dizziness on standing, headaches, fatigue), especially if you're low-carb.",
+    "defaultPhase": 8,
+    "tags": []
+  },
+  {
+    "id": "vitamin-c-iron",
+    "title": "Vitamin C with iron",
+    "action": "Pair vitamin C with plant-based iron sources.",
+    "category": "nutrition",
+    "trigger": {
+      "anchor": "custom",
+      "note": "with iron-rich plant meals"
+    },
+    "mechanism": "Vitamin C sharply increases absorption of non-heme (plant) iron.",
+    "evidence": "mechanistic",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "free",
+      "note": null
+    },
+    "shopping": null,
+    "safety": null,
+    "details": "This matters for non-heme iron only; heme iron from meat is already well absorbed. It is most relevant for vegetarians, women of childbearing age, and anyone with borderline iron status.",
+    "defaultPhase": 8,
+    "tags": []
+  },
+  {
+    "id": "zinc-lozenges",
+    "title": "Zinc at cold onset",
+    "action": "At the first sign of a cold, take zinc lozenges every 2-3 hours while awake for 2-3 days.",
+    "category": "nutrition",
+    "trigger": {
+      "anchor": "asNeeded",
+      "note": "start within 24 hrs of symptoms"
+    },
+    "mechanism": "Zinc ions interfere with rhinovirus replication in the nasal and throat epithelium.",
+    "evidence": "rct",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "oneTimeUnder50",
+      "note": "~$8 a box, used only at cold onset"
+    },
+    "shopping": {
+      "item": "Zinc lozenges",
+      "criteria": "gluconate or acetate form that dissolves in the mouth; NOT nasal spray",
+      "recurring": false,
+      "where": "pharmacy"
+    },
+    "safety": "Never use zinc nasal sprays; they have been associated with permanent loss of smell.",
+    "details": "Meta-analyses show about a 33% reduction in cold duration, but timing is everything: start within 24 hours and dose every 2-3 hours while awake. After 48 hours of symptoms the benefit drops sharply. Use lozenges, never nasal sprays.",
+    "defaultPhase": 7,
+    "tags": []
+  },
+  {
+    "id": "phosphatidylserine",
+    "title": "Phosphatidylserine",
+    "action": "Start at 200mg of phosphatidylserine with dinner; increase to 400mg only if stress-sleep symptoms persist.",
+    "category": "nutrition",
+    "trigger": {
+      "anchor": "dinner",
+      "note": "with your last substantial meal"
+    },
+    "mechanism": "Phosphatidylserine modulates cortisol via HPA-axis normalization, which can help a wired-but-tired state.",
+    "evidence": "mechanistic",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "recurring",
+      "note": "~$12-25/mo"
+    },
+    "shopping": {
+      "item": "Phosphatidylserine",
+      "criteria": "capsules ~100mg each; start at 200mg",
+      "recurring": true,
+      "where": "online"
+    },
+    "safety": null,
+    "details": "Start at 200mg (2 capsules) with dinner; if cortisol-driven symptoms persist after two weeks (trouble falling asleep during available windows, a wired-but-tired feeling at night), increase to 400mg. The 400mg figure is the upper dose from athletic cortisol studies (which used 400-800mg); the cognitive and stress literature uses 100-300mg, and many people respond well at 200-300mg. It works through a different pathway than glycine (cortisol/HPA vs. core-temperature drop), so the two don't interact. Most useful for sleep-deprived new parents rather than the general population.",
+    "defaultPhase": 8,
+    "tags": [
+      "new-parent"
+    ]
+  },
+  {
+    "id": "avoid-megadosing",
+    "title": "Don't mega-dose supplements",
+    "action": "Avoid mega-dosing supplements; test rather than guess with fat-soluble vitamins.",
+    "category": "nutrition",
+    "trigger": {
+      "anchor": "asNeeded",
+      "note": "when choosing supplement doses"
+    },
+    "mechanism": "Fat-soluble vitamins accumulate to toxic levels and excess of one mineral can deplete another, so more is not better.",
+    "evidence": "mechanistic",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "free",
+      "note": null
+    },
+    "shopping": null,
+    "safety": null,
+    "details": "Vitamins A, D, E, and K accumulate in tissue; vitamin C absorption plateaus around 200mg; excess zinc depletes copper. The dose makes the poison. For fat-soluble vitamins in particular, test rather than guess.",
+    "defaultPhase": 8,
+    "tags": []
+  },
+  {
+    "id": "avoid-detox-cleanses",
+    "title": "Skip detox cleanses",
+    "action": "Don't buy detox or juice cleanses.",
+    "category": "nutrition",
+    "trigger": {
+      "anchor": "asNeeded",
+      "note": "when tempted by a 'cleanse'"
+    },
+    "mechanism": "The liver and kidneys already handle detoxification continuously; cleanse products are essentially laxatives with marketing.",
+    "evidence": "mechanistic",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "free",
+      "note": "saves money"
+    },
+    "shopping": null,
+    "safety": null,
+    "details": "Your detox organs work 24/7 and cleanse products don't help them; the weight lost on a juice cleanse is water and glycogen and returns immediately. This is a save-your-money item.",
+    "defaultPhase": 8,
+    "tags": []
+  },
+  {
+    "id": "dead-hangs",
+    "title": "Dead hangs",
+    "action": "Accumulate 3-5 minutes of hanging from a bar each day.",
+    "category": "musculoskeletal",
+    "trigger": {
+      "anchor": "custom",
+      "note": "3-5 min total across the day"
+    },
+    "mechanism": "Hanging decompresses the spine and repositions the shoulder's acromion, supporting shoulder health.",
+    "evidence": "mechanistic",
+    "timeCostMinutes": 4,
+    "cost": {
+      "tier": "oneTimeUnder50",
+      "note": "~$25-35 for a bar if needed"
+    },
+    "shopping": {
+      "item": "Doorway pull-up bar",
+      "criteria": "door-mount or wall-mount bar rated for your bodyweight (only if you lack a bar)",
+      "recurring": false,
+      "where": "online"
+    },
+    "safety": null,
+    "details": "Build up the total in whatever short sets you need. Passive hanging decompresses the spine and is used in shoulder-health protocols for repositioning the acromion.",
+    "defaultPhase": 5,
+    "tags": []
+  },
+  {
+    "id": "hip-flexor-glutes",
+    "title": "Hip flexors + glutes",
+    "action": "Stretch hip flexors and do glute bridges for about 5 minutes daily.",
+    "category": "musculoskeletal",
+    "trigger": {
+      "anchor": "morning",
+      "note": "attach to an existing routine, e.g. while coffee brews"
+    },
+    "mechanism": "Sitting tightens the hip flexors and weakens the glutes, tilting the pelvis and loading the lower back; this reverses the chain.",
+    "evidence": "mechanistic",
+    "timeCostMinutes": 5,
+    "cost": {
+      "tier": "free",
+      "note": null
+    },
+    "shopping": null,
+    "safety": null,
+    "details": "Tight psoas from sitting drives anterior pelvic tilt and lumbar load, while weak glutes force the lower back to do hip-extension work it wasn't designed for ('gluteal amnesia'). Stretch each hip flexor about 2 minutes (squeeze the glute on the stretched side hard) and do glute bridges with a 2-3 second top squeeze, daily.",
+    "defaultPhase": 5,
+    "tags": []
+  },
+  {
+    "id": "face-pulls",
+    "title": "Face pulls / pull-aparts",
+    "action": "Do face pulls or band pull-aparts a few times a week.",
+    "category": "musculoskeletal",
+    "trigger": {
+      "anchor": "custom",
+      "note": "2-3 min, a few times a week"
+    },
+    "mechanism": "They strengthen the posterior deltoid and external rotators that atrophy under the constant internal rotation of screen life.",
+    "evidence": "mechanistic",
+    "timeCostMinutes": 3,
+    "cost": {
+      "tier": "oneTimeUnder50",
+      "note": "~$10 for a band"
+    },
+    "shopping": {
+      "item": "Resistance band",
+      "criteria": "light-to-medium loop or handled band",
+      "recurring": false,
+      "where": "online"
+    },
+    "safety": null,
+    "details": "This is the best single-exercise insurance for shoulder health and upper-crossed posture. A related free cue: rather than 'pulling your shoulders back' (which just creates tension), externally rotate your arms so your palms face forward, which automatically sets the scapulae, opens the chest, and engages the lower traps with no sustained effort.",
+    "defaultPhase": 7,
+    "tags": []
+  },
+  {
+    "id": "mcgill-big-3",
+    "title": "McGill Big 3",
+    "action": "Do bird dogs, side planks, and curl-ups for core stability, about 10 minutes 3x/week.",
+    "category": "musculoskeletal",
+    "trigger": {
+      "anchor": "custom",
+      "note": "10 min, 3x/week"
+    },
+    "mechanism": "These build spine-protective stability without the high disc-compression loads that crunches and sit-ups create.",
+    "evidence": "mechanistic",
+    "timeCostMinutes": 10,
+    "cost": {
+      "tier": "free",
+      "note": null
+    },
+    "shopping": null,
+    "safety": null,
+    "details": "Stuart McGill's spine research showed crunches load the discs heavily with no stability benefit. The three alternatives are bird dogs (anti-rotation from quadruped), side planks (lateral stability), and modified curl-ups (only the upper back lifts, hands under the lumbar spine to keep it neutral, no spinal flexion).",
+    "defaultPhase": 8,
+    "tags": []
+  },
+  {
+    "id": "pelvic-floor-kegels",
+    "title": "Pelvic floor exercises",
+    "action": "Contract the pelvic floor for 5 seconds, release for 5, 10-15 reps, a few times a day.",
+    "category": "musculoskeletal",
+    "trigger": {
+      "anchor": "custom",
+      "note": "3x/day, separate from urinating"
+    },
+    "mechanism": "The pelvic floor is part of the deep core; training it supports urinary continence, sexual function, and core stability.",
+    "evidence": "observational",
+    "timeCostMinutes": 3,
+    "cost": {
+      "tier": "free",
+      "note": null
+    },
+    "shopping": null,
+    "safety": "Identify the muscles by stopping urine flow only once, then never do the exercises mid-urination again, which can train urinary retention.",
+    "details": "Benefits apply to both sexes, and these muscles are under-trained in almost everyone. Find them by briefly interrupting urine flow one time, then exercise them separately: contract 5 seconds, release 5 seconds, 10-15 reps, about 3 times a day.",
+    "defaultPhase": 8,
+    "tags": []
+  },
+  {
+    "id": "deep-squat",
+    "title": "Deep squat practice",
+    "action": "Spend 2-3 minutes a day in a deep squat.",
+    "category": "musculoskeletal",
+    "trigger": {
+      "anchor": "custom",
+      "note": "2-3 min daily"
+    },
+    "mechanism": "Full-depth squatting restores ankle dorsiflexion and hip and lumbar mobility simultaneously.",
+    "evidence": "observational",
+    "timeCostMinutes": 3,
+    "cost": {
+      "tier": "free",
+      "note": null
+    },
+    "shopping": null,
+    "safety": null,
+    "details": "Hold a doorframe or countertop for balance if needed. Populations that squat to rest throughout life have dramatically lower rates of hip and knee osteoarthritis, though this is observational.",
+    "defaultPhase": 8,
+    "tags": []
+  },
+  {
+    "id": "movement-snacks",
+    "title": "Movement snacks",
+    "action": "Break up sitting with 1-2 minutes of movement every 30-60 minutes.",
+    "category": "musculoskeletal",
+    "trigger": {
+      "anchor": "hourly",
+      "note": "1-2 min every 30-60 min"
+    },
+    "mechanism": "Prolonged sitting is an independent mortality risk even for regular exercisers, and frequent interruption mitigates the metabolic damage.",
+    "evidence": "observational",
+    "timeCostMinutes": 2,
+    "cost": {
+      "tier": "free",
+      "note": null
+    },
+    "shopping": null,
+    "safety": null,
+    "details": "A single gym session doesn't undo 8+ hours of sitting. Standing and moving briefly each half hour substantially reduces the harm. Set a timer; the intervention is unglamorous but the effect is real.",
+    "defaultPhase": 7,
+    "tags": []
+  },
+  {
+    "id": "eccentric-tendon-loading",
+    "title": "Eccentric tendon loading",
+    "action": "For tendinopathy, do slow eccentric (lowering-phase) loading of the affected tendon.",
+    "category": "musculoskeletal",
+    "trigger": {
+      "anchor": "asNeeded",
+      "note": "as targeted rehab, if applicable"
+    },
+    "mechanism": "Slow eccentric loading stimulates collagen remodeling in tendons better than rest or anti-inflammatories.",
+    "evidence": "rct",
+    "timeCostMinutes": 5,
+    "cost": {
+      "tier": "free",
+      "note": null
+    },
+    "shopping": null,
+    "safety": null,
+    "details": "Tendinopathy (tennis elbow, Achilles, patellar) responds to slow eccentric loading better than rest, NSAIDs, or cortisone. Example: for Achilles tendinopathy, rise on both feet and lower slowly on the affected foot over 3-5 seconds off a step. This is a conditional rehab intervention, not a general habit.",
+    "defaultPhase": 8,
+    "tags": []
+  },
+  {
+    "id": "barefoot-toe-spacers",
+    "title": "Barefoot + toe spacers",
+    "action": "Spend time barefoot at home, use toe spacers, and choose wide-toe-box shoes.",
+    "category": "musculoskeletal",
+    "trigger": {
+      "anchor": "custom",
+      "note": "barefoot at home; wide shoes outside"
+    },
+    "mechanism": "Narrow shoes compress the toes; restoring toe splay improves foot mechanics and the whole kinetic chain above it.",
+    "evidence": "mechanistic",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "oneTimeUnder50",
+      "note": "~$15-30 toe spacers; wide shoes extra"
+    },
+    "shopping": {
+      "item": "Toe spacers + wide-toe-box shoes",
+      "criteria": "silicone toe spacers worn during daily activity; shoes with a wide toe box and flat sole",
+      "recurring": false,
+      "where": "online"
+    },
+    "safety": null,
+    "details": "Chronic toe compression contributes to bunions, plantar fasciitis, and altered gait that propagates up to the knee, hip, and back. This is a slow process: feet adapted to narrow shoes over decades and won't reverse in weeks.",
+    "defaultPhase": 8,
+    "tags": []
+  },
+  {
+    "id": "rucking",
+    "title": "Rucking",
+    "action": "Walk with a weighted pack 2-3 times a week, starting around 10% of bodyweight.",
+    "category": "musculoskeletal",
+    "trigger": {
+      "anchor": "weekly",
+      "note": "2-3x/week"
+    },
+    "mechanism": "Loaded walking combines cardio, bone-loading stimulus, strength, and postural engagement in one session.",
+    "evidence": "mechanistic",
+    "timeCostMinutes": 30,
+    "cost": {
+      "tier": "oneTimeUnder200",
+      "note": "~$100-180 for a pack + plate, or use a loaded backpack for free"
+    },
+    "shopping": {
+      "item": "Rucksack + weight",
+      "criteria": "a sturdy pack; start with ~10% bodyweight in a plate or books, kept high in the pack",
+      "recurring": false,
+      "where": "online"
+    },
+    "safety": null,
+    "details": "Keep the weight high in the pack and start light. It stacks well with the post-meal walk. A loaded regular backpack works to start; a dedicated ruck plate is optional.",
+    "defaultPhase": 8,
+    "tags": []
+  },
+  {
+    "id": "strength-training",
+    "title": "Strength training",
+    "action": "Strength train 2-3 times a week.",
+    "category": "musculoskeletal",
+    "trigger": {
+      "anchor": "weekly",
+      "note": "2-3x/week"
+    },
+    "mechanism": "Resistance training preserves muscle, bone density, metabolic rate, and functional capacity as you age.",
+    "evidence": "rct",
+    "timeCostMinutes": 45,
+    "cost": {
+      "tier": "free",
+      "note": "bodyweight or gym access"
+    },
+    "shopping": null,
+    "safety": null,
+    "details": "This is non-negotiable for healthy aging: cardio alone accelerates sarcopenia and doesn't prevent bone loss, so you need both modalities. Grip strength in particular is a strong biomarker of overall capability and mortality risk, and farmer's carries build grip and core together.",
+    "defaultPhase": 8,
+    "tags": []
+  },
+  {
+    "id": "zone-2-training",
+    "title": "Zone 2 cardio",
+    "action": "Program cardio as roughly 80% easy (Zone 2) and 20% hard.",
+    "category": "musculoskeletal",
+    "trigger": {
+      "anchor": "weekly",
+      "note": "80/20 easy/hard split"
+    },
+    "mechanism": "Easy Zone 2 builds mitochondrial density and fat oxidation while high-intensity work builds top-end VO2 max.",
+    "evidence": "rct",
+    "timeCostMinutes": 45,
+    "cost": {
+      "tier": "free",
+      "note": null
+    },
+    "shopping": null,
+    "safety": null,
+    "details": "Zone 2 is a conversational, nasal-breathing pace; most recreational athletes train moderate-hard every session and get neither adaptation. The 80/20 polarized model is one of the best-replicated findings in exercise science. VO2 max, which this builds, is among the strongest predictors of all-cause mortality and is trainable at any age.",
+    "defaultPhase": 8,
+    "tags": []
+  },
+  {
+    "id": "ergonomics",
+    "title": "Eye-level monitor",
+    "action": "Raise your monitor to eye level and use an external keyboard.",
+    "category": "musculoskeletal",
+    "trigger": {
+      "anchor": "custom",
+      "note": "one-time workspace setup"
+    },
+    "mechanism": "A laptop on a desk forces neck flexion for hours a day, the leading cause of chronic neck pain in office workers.",
+    "evidence": "mechanistic",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "oneTimeUnder200",
+      "note": "~$50-100 once"
+    },
+    "shopping": {
+      "item": "Laptop stand + external keyboard",
+      "criteria": "stand that raises the top of the screen to eye level, plus a separate keyboard and mouse",
+      "recurring": false,
+      "where": "online"
+    },
+    "safety": null,
+    "details": "Top of the screen at eye level, an arm's length away, directly in front; elbows about 90 degrees, feet flat. A one-time ~$50-100 setup against decades of neck pain and cervicogenic headaches.",
+    "defaultPhase": 8,
+    "tags": []
+  },
+  {
+    "id": "avoid-static-stretch-preworkout",
+    "title": "Skip pre-workout static stretching",
+    "action": "Don't static stretch before strength or power work; do a dynamic warm-up instead.",
+    "category": "musculoskeletal",
+    "trigger": {
+      "anchor": "asNeeded",
+      "note": "before exercise"
+    },
+    "mechanism": "Static stretching before exercise reduces force production and does not prevent injuries.",
+    "evidence": "rct",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "free",
+      "note": null
+    },
+    "shopping": null,
+    "safety": null,
+    "details": "Multiple meta-analyses show static stretching before activity cuts force output by about 5-10% and doesn't reduce injury rates. Use dynamic warm-ups (leg swings, arm circles, bodyweight squats) beforehand and save static stretching for after or as standalone flexibility work.",
+    "defaultPhase": 7,
+    "tags": []
+  },
+  {
+    "id": "avoid-chronic-nsaids",
+    "title": "Limit chronic NSAIDs",
+    "action": "Don't take NSAIDs chronically for soreness or recovery; reserve them for acute events.",
+    "category": "musculoskeletal",
+    "trigger": {
+      "anchor": "asNeeded",
+      "note": "when reaching for ibuprofen out of habit"
+    },
+    "mechanism": "Inflammation is part of healing, and chronically suppressing it impairs tissue adaptation while damaging the gut lining.",
+    "evidence": "mechanistic",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "free",
+      "note": null
+    },
+    "shopping": null,
+    "safety": "Chronic NSAID use damages the gut lining; GI bleeds are a leading cause of hospitalization.",
+    "details": "Routinely taking ibuprofen or naproxen for muscle soreness or post-exercise recovery blunts the adaptation you're training for and, over time, harms the gut lining. Reserve NSAIDs for acute pain and inflammation, not daily maintenance.",
+    "defaultPhase": 8,
+    "tags": []
+  },
+  {
+    "id": "physiological-sigh",
+    "title": "Physiological sigh",
+    "action": "For acute stress, take a double inhale through the nose and a long exhale through the mouth.",
+    "category": "stress",
+    "trigger": {
+      "anchor": "stressMoment",
+      "note": "when you feel acute stress"
+    },
+    "mechanism": "The double inhale maximally inflates the lungs and the long exhale activates the calming parasympathetic branch via the vagus nerve.",
+    "evidence": "rct",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "free",
+      "note": null
+    },
+    "shopping": null,
+    "safety": null,
+    "details": "This is the fastest known non-drug method to reduce acute stress, working in 1-3 breath cycles in real time rather than after weeks of practice. A 2023 Stanford randomized study found brief daily cyclic sighing improved mood and lowered anxiety. The pattern also occurs spontaneously during sleep transitions and crying.",
+    "defaultPhase": 6,
+    "tags": []
+  },
+  {
+    "id": "nasal-breathing",
+    "title": "Nasal breathing",
+    "action": "Default to breathing through your nose, closing your mouth when you notice it open.",
+    "category": "stress",
+    "trigger": {
+      "anchor": "custom",
+      "note": "throughout the day and during exercise"
+    },
+    "mechanism": "Nose breathing produces nitric oxide, maintains the oral microbiome, improves CO2 tolerance, and filters and humidifies air.",
+    "evidence": "mechanistic",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "free",
+      "note": null
+    },
+    "shopping": null,
+    "safety": null,
+    "details": "Continuous nasal nitric oxide is a vasodilator, and CO2 tolerance improves oxygen delivery to tissues via the Bohr effect. During exercise, nasal breathing rate-limits you to the aerobic zone: if you can't keep your mouth closed, you're above Zone 2. Chronic mouth breathing also dries the mouth, reducing saliva's protective buffering and raising cavity and gum-disease rates independent of hygiene.",
+    "defaultPhase": 6,
+    "tags": []
+  },
+  {
+    "id": "gratitude-practice",
+    "title": "Gratitude practice",
+    "action": "Write three specific things you're grateful for.",
+    "category": "stress",
+    "trigger": {
+      "anchor": "evening",
+      "note": "a few minutes, most days"
+    },
+    "mechanism": "Recalling specific positive events engages the episodic memory system and reliably shifts mood.",
+    "evidence": "rct",
+    "timeCostMinutes": 5,
+    "cost": {
+      "tier": "free",
+      "note": null
+    },
+    "shopping": null,
+    "safety": null,
+    "details": "Specificity matters: 'I'm grateful for my health' is too vague, whereas a concrete moment (for example, the way the light came through the window this morning) engages memory differently. The evidence for mood, sleep quality, and relationship satisfaction is surprisingly robust for five minutes of effort.",
+    "defaultPhase": 8,
+    "tags": []
+  },
+  {
+    "id": "expressive-journaling",
+    "title": "Expressive journaling",
+    "action": "Write about a stressful experience for 15-20 minutes on 3-4 consecutive days.",
+    "category": "stress",
+    "trigger": {
+      "anchor": "custom",
+      "note": "15-20 min, 3-4 days when processing stress"
+    },
+    "mechanism": "Turning an emotional experience into narrative forces cognitive processing, lowering the chronic arousal of unprocessed stress.",
+    "evidence": "rct",
+    "timeCostMinutes": 18,
+    "cost": {
+      "tier": "free",
+      "note": null
+    },
+    "shopping": null,
+    "safety": null,
+    "details": "The Pennebaker protocol shows measurable improvements in immune function, fewer physician visits, and better mood and performance. This is deliberate processing of difficult experiences, not casual diary-keeping, done in short bursts over a few days.",
+    "defaultPhase": 8,
+    "tags": []
+  },
+  {
+    "id": "social-connection",
+    "title": "Schedule social connection",
+    "action": "Schedule regular in-person social interaction like you schedule exercise.",
+    "category": "stress",
+    "trigger": {
+      "anchor": "weekly",
+      "note": "plan it in, don't leave it to chance"
+    },
+    "mechanism": "Loneliness raises mortality risk comparably to smoking, driving elevated cortisol, inflammation, and impaired immunity.",
+    "evidence": "observational",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "free",
+      "note": null
+    },
+    "shopping": null,
+    "safety": null,
+    "details": "A large meta-analysis put the mortality risk of loneliness on par with smoking about 15 cigarettes a day and above obesity. Humans evolved in cooperative groups, so the body mounts a stress response to isolation. This is survival-grade, not a nice-to-have, so treat it as non-optional.",
+    "defaultPhase": 8,
+    "tags": []
+  },
+  {
+    "id": "nature-exposure",
+    "title": "Nature exposure",
+    "action": "Spend 20+ minutes in a natural setting.",
+    "category": "stress",
+    "trigger": {
+      "anchor": "custom",
+      "note": "20+ min, even a park counts"
+    },
+    "mechanism": "Nature lowers cortisol, blood pressure, and heart rate and raises natural-killer-cell activity via reduced attentional demand and tree-released compounds.",
+    "evidence": "observational",
+    "timeCostMinutes": 20,
+    "cost": {
+      "tier": "free",
+      "note": null
+    },
+    "shopping": null,
+    "safety": null,
+    "details": "Even 20 minutes in a park produces measurable effects. Mechanisms likely include the low attentional demand of natural settings and phytoncides (tree-released volatile compounds) with immune-modulating effects. Evidence is largely observational and small-trial.",
+    "defaultPhase": 7,
+    "tags": []
+  },
+  {
+    "id": "learn-novel-skills",
+    "title": "Learn novel skills",
+    "action": "Regularly practice a genuinely new and challenging skill.",
+    "category": "stress",
+    "trigger": {
+      "anchor": "custom",
+      "note": "ongoing, must be genuinely novel"
+    },
+    "mechanism": "Learning demanding novel activities builds cognitive reserve, the brain's resilience against age-related decline.",
+    "evidence": "observational",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "free",
+      "note": "varies by skill"
+    },
+    "shopping": null,
+    "safety": null,
+    "details": "Novelty is the key word: crossword puzzles you're already good at don't count. A new language, instrument, sport, or complex skill forces neuroplasticity, and the more different it is from your routine, the more broadly it activates new networks. The evidence is observational epidemiology on cognitive reserve.",
+    "defaultPhase": 8,
+    "tags": []
+  },
+  {
+    "id": "exercise-for-mood",
+    "title": "Exercise for mood",
+    "action": "Use exercise, even a 10-minute walk, as a tool for low mood.",
+    "category": "stress",
+    "trigger": {
+      "anchor": "custom",
+      "note": "start tiny if motivation is the barrier"
+    },
+    "mechanism": "Exercise raises BDNF and endorphins and regulates the stress axis, matching antidepressants for mild-to-moderate depression.",
+    "evidence": "rct",
+    "timeCostMinutes": 10,
+    "cost": {
+      "tier": "free",
+      "note": null
+    },
+    "shopping": null,
+    "safety": "This is not a reason to stop prescribed medication; for severe depression, medication may be needed to reach the activation energy for exercise. Do not change medication without a provider.",
+    "details": "Multiple meta-analyses find an effect size comparable to SSRIs for mild-to-moderate depression, with the ability to actually exercise as a precondition. Because depression itself saps motivation, starting with a 10-minute walk and building up beats prescribing '30 minutes of vigorous exercise 5x/week' to someone who can barely get out of bed.",
+    "defaultPhase": 8,
+    "tags": []
+  },
+  {
+    "id": "sauna",
+    "title": "Sauna",
+    "action": "Use a traditional sauna (around 174°F+, 20+ minutes) if you have access.",
+    "category": "stress",
+    "trigger": {
+      "anchor": "weekly",
+      "note": "if you have access"
+    },
+    "mechanism": "Heat stress triggers heat-shock proteins, improved endothelial function, and BDNF release.",
+    "evidence": "observational",
+    "timeCostMinutes": 25,
+    "cost": {
+      "tier": "recurring",
+      "note": "facility or gym access"
+    },
+    "shopping": null,
+    "safety": null,
+    "details": "Finnish data associate frequent sauna use with lower mortality and cardiovascular events, and the mechanisms are plausible, but the data are observational with significant healthy-user bias: people who sauna often are already healthier, wealthier, and more socially connected. It's probably net positive if you have access, but don't treat the headline '40% mortality reduction' as causal.",
+    "defaultPhase": 8,
+    "tags": []
+  },
+  {
+    "id": "cold-shower-finish",
+    "title": "Cold shower finish",
+    "action": "End your shower with 30-60 seconds of cold water.",
+    "category": "stress",
+    "trigger": {
+      "anchor": "shower",
+      "note": "30-60 sec cold at the end"
+    },
+    "mechanism": "Cold triggers a norepinephrine spike of 2-3x baseline lasting hours, improving alertness, mood, and resilience.",
+    "evidence": "mechanistic",
+    "timeCostMinutes": 1,
+    "cost": {
+      "tier": "free",
+      "note": null
+    },
+    "shopping": null,
+    "safety": null,
+    "details": "The norepinephrine spike is the real win; the brown-fat calorie-burning angle is modest in practice (maybe 100-200 extra kcal/day even in aggressive protocols). A cold shower finish is the low-effort entry point. Avoid cold immersion immediately after strength training, as it blunts the hypertrophic response; cold after endurance work is fine.",
+    "defaultPhase": 7,
+    "tags": []
+  },
+  {
+    "id": "weekly-rest-day",
+    "title": "Weekly rest day",
+    "action": "Take one lower-stress, lower-stimulation day each week.",
+    "category": "stress",
+    "trigger": {
+      "anchor": "weekly",
+      "note": "one day per week"
+    },
+    "mechanism": "A weekly recovery cycle normalizes cortisol, supports social bonding, and provides psychological restoration.",
+    "evidence": "traditional",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "free",
+      "note": null
+    },
+    "shopping": null,
+    "safety": null,
+    "details": "A dedicated day of less work and less screen time, with more rest, nature, and connection, is a weekly reset. Many cultures independently arrived at a weekly rest day, and modern burnout research is rediscovering the physiological case: chronic stress without recovery degrades every system.",
+    "defaultPhase": 8,
+    "tags": []
+  },
+  {
+    "id": "daily-sunscreen",
+    "title": "Daily sunscreen",
+    "action": "Apply SPF 30+ to face and neck every morning.",
+    "category": "skin",
+    "trigger": {
+      "anchor": "morning",
+      "note": "on face and neck each morning"
+    },
+    "mechanism": "About 80% of facial aging is UV-driven, and UVA penetrates clouds and glass.",
+    "evidence": "rct",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "recurring",
+      "note": "~$8-15/mo"
+    },
+    "shopping": {
+      "item": "Facial sunscreen SPF 30+",
+      "criteria": "broad-spectrum SPF 30+, cosmetically acceptable for daily face use",
+      "recurring": true,
+      "where": "pharmacy"
+    },
+    "safety": null,
+    "details": "A randomized 4.5-year Australian trial found the daily-sunscreen group showed no detectable increase in skin aging versus significant aging in controls. This is the single highest-ROI anti-aging intervention.",
+    "defaultPhase": 8,
+    "tags": []
+  },
+  {
+    "id": "retinoids",
+    "title": "Retinoids",
+    "action": "Use a retinoid at night, starting slow (every third night) and always pairing with daytime sunscreen.",
+    "category": "skin",
+    "trigger": {
+      "anchor": "evening",
+      "note": "PM only; start every 3rd night"
+    },
+    "mechanism": "Retinoids increase collagen and normalize skin-cell turnover, the only topical class with decades of anti-aging evidence.",
+    "evidence": "rct",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "recurring",
+      "note": "~$5-30/mo"
+    },
+    "shopping": {
+      "item": "Retinoid (OTC retinol or prescription tretinoin)",
+      "criteria": "start with a low-strength OTC retinol; prescription tretinoin is stronger and requires a provider",
+      "recurring": true,
+      "where": "pharmacy"
+    },
+    "safety": "Avoid all retinoids during pregnancy or breastfeeding, or when trying to conceive. This is the one skincare product with a genuine safety concern.",
+    "details": "Retinoids have been in dermatological use since the 1970s for reversing photoaging. Start low (every third night, then every other), always with daytime sunscreen since they increase photosensitivity, and use moisturizer to manage the initial irritation. The pregnancy contraindication is firm: prescription tretinoin is a known teratogen, and general guidance is to avoid all retinoids, OTC included, while pregnant, breastfeeding, or trying to conceive.",
+    "defaultPhase": 8,
+    "tags": []
+  },
+  {
+    "id": "moisturize-after-shower",
+    "title": "Moisturize after showering",
+    "action": "Apply moisturizer within 3 minutes of getting out of the shower.",
+    "category": "skin",
+    "trigger": {
+      "anchor": "shower",
+      "note": "within 3 min of toweling off"
+    },
+    "mechanism": "Applying to slightly damp skin traps water in the outer layer far better than applying to dry skin.",
+    "evidence": "mechanistic",
+    "timeCostMinutes": 1,
+    "cost": {
+      "tier": "recurring",
+      "note": "~$5-10/mo"
+    },
+    "shopping": {
+      "item": "Fragrance-free moisturizer",
+      "criteria": "ceramide-containing, fragrance-free",
+      "recurring": true,
+      "where": "pharmacy"
+    },
+    "safety": null,
+    "details": "Moisturizing damp skin reduces transepidermal water loss and supports the barrier. Fragrance is the leading cause of contact dermatitis, so choose fragrance-free, ceramide-containing formulas.",
+    "defaultPhase": 7,
+    "tags": []
+  },
+  {
+    "id": "gentle-cleansing",
+    "title": "Don't over-cleanse",
+    "action": "Cleanse your face once daily (evening) and go easy on hot water and soap elsewhere.",
+    "category": "skin",
+    "trigger": {
+      "anchor": "shower",
+      "note": "once-daily face wash; soap only where needed"
+    },
+    "mechanism": "Aggressive washing strips the skin's acid mantle and microbiome, paradoxically increasing irritation.",
+    "evidence": "mechanistic",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "free",
+      "note": null
+    },
+    "shopping": null,
+    "safety": null,
+    "details": "Most people need to wash the face just once daily (evening, to remove sunscreen and sebum) with water only in the morning. On the body, hot, long showers and soap everywhere strip protective oils; soap is really only needed on apocrine areas (armpits, groin, feet) and the rest can be rinsed. Antibacterial soaps offer no added benefit and may disrupt beneficial bacteria.",
+    "defaultPhase": 7,
+    "tags": []
+  },
+  {
+    "id": "indoor-humidity",
+    "title": "Indoor humidity 40-60%",
+    "action": "Keep indoor humidity between 40-60%, especially in heating season.",
+    "category": "environment",
+    "trigger": {
+      "anchor": "custom",
+      "note": "run a humidifier in heating season"
+    },
+    "mechanism": "Below 40% RH, virus-carrying aerosols shrink, stay airborne longer, and viruses remain viable longer.",
+    "evidence": "mechanistic",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "oneTimeUnder200",
+      "note": "~$30-80 humidifier, plus periodic filters"
+    },
+    "shopping": {
+      "item": "Humidifier",
+      "criteria": "cool-mist, easy to clean, sized for the bedroom",
+      "recurring": false,
+      "where": "online"
+    },
+    "safety": "Keep humidity under 60% to avoid mold growth, and clean the humidifier regularly.",
+    "details": "Most heated homes drop to 20-30% RH in winter. The 40-60% band minimizes airborne pathogen viability while avoiding mold, and it also reduces dry skin, nosebleeds, and static. A bedroom humidifier in heating season is cheap respiratory insurance.",
+    "defaultPhase": 7,
+    "tags": []
+  },
+  {
+    "id": "air-filtration",
+    "title": "HEPA air filter",
+    "action": "Run a HEPA and activated-carbon air filter in the rooms you use most.",
+    "category": "environment",
+    "trigger": {
+      "anchor": "custom",
+      "note": "target 5+ air changes per hour"
+    },
+    "mechanism": "HEPA captures particles (pollen, PM2.5, aerosols) and activated carbon adsorbs gases and VOCs.",
+    "evidence": "mechanistic",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "oneTimeUnder200",
+      "note": "~$100-200 room unit; recurring filter replacements"
+    },
+    "shopping": {
+      "item": "HEPA air purifier",
+      "criteria": "true HEPA (H13+) plus activated carbon; CADR rated for the room size",
+      "recurring": false,
+      "where": "online"
+    },
+    "safety": null,
+    "details": "Aim for 5+ air changes per hour in the rooms where you spend the most time, and replace filters on schedule. Larger units often deliver better value per unit of airflow than small boutique models.",
+    "defaultPhase": 8,
+    "tags": []
+  },
+  {
+    "id": "water-filtration",
+    "title": "Water filtration",
+    "action": "Filter tap water with an NSF-certified carbon-block or reverse-osmosis filter.",
+    "category": "environment",
+    "trigger": {
+      "anchor": "custom",
+      "note": "one-time setup, replace cartridges on schedule"
+    },
+    "mechanism": "Filtration removes chlorine, lead, PFAS, and microplastics from tap water.",
+    "evidence": "mechanistic",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "oneTimeUnder50",
+      "note": "~$30 pitcher; RO systems cost more"
+    },
+    "shopping": {
+      "item": "Water filter",
+      "criteria": "NSF-certified carbon-block pitcher or under-sink reverse-osmosis system",
+      "recurring": false,
+      "where": "online"
+    },
+    "safety": null,
+    "details": "Look for NSF certification for the specific contaminants you care about. A certified pitcher is the low-cost entry point; reverse osmosis is more thorough and more expensive.",
+    "defaultPhase": 8,
+    "tags": []
+  },
+  {
+    "id": "reduce-microplastics",
+    "title": "Reduce microplastics",
+    "action": "Don't microwave or store hot food and drinks in plastic; use glass or steel.",
+    "category": "environment",
+    "trigger": {
+      "anchor": "custom",
+      "note": "for hot food and liquids"
+    },
+    "mechanism": "Heat drives plastics to shed microplastics into food and drink.",
+    "evidence": "mechanistic",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "free",
+      "note": null
+    },
+    "shopping": null,
+    "safety": null,
+    "details": "Don't microwave in plastic, don't leave plastic water bottles in hot cars, and use glass or stainless steel for hot liquids. The full health impact of microplastics is still being studied, but these exposure-reduction steps cost nothing.",
+    "defaultPhase": 8,
+    "tags": []
+  },
+  {
+    "id": "hearing-protection",
+    "title": "Hearing protection",
+    "action": "Wear earplugs in environments above about 85 dB.",
+    "category": "environment",
+    "trigger": {
+      "anchor": "custom",
+      "note": "concerts, power tools, loud gyms"
+    },
+    "mechanism": "Cochlear hair cells don't regenerate, so noise damage is cumulative and permanent.",
+    "evidence": "mechanistic",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "oneTimeUnder50",
+      "note": "foam ~$1; flat-attenuation earplugs cost more"
+    },
+    "shopping": {
+      "item": "Earplugs",
+      "criteria": "flat-attenuation (musician's) earplugs to lower volume evenly; foam plugs for casual use",
+      "recurring": false,
+      "where": "online"
+    },
+    "safety": null,
+    "details": "Anything over 85 dB for extended periods causes cumulative damage: concerts, power tools, mowers, motorcycles, loud fitness classes. Flat-attenuation earplugs reduce volume without muffling so music still sounds good. The damage is silent until it isn't.",
+    "defaultPhase": 7,
+    "tags": []
+  },
+  {
+    "id": "eye-strain-20-20-20",
+    "title": "20-20-20 for eyes",
+    "action": "Every 20 minutes of screen work, look at something 20 feet away for 20 seconds.",
+    "category": "environment",
+    "trigger": {
+      "anchor": "hourly",
+      "note": "every ~20 min of near work"
+    },
+    "mechanism": "Sustained near-focus fatigues the ciliary muscles; distance gazing relaxes them.",
+    "evidence": "mechanistic",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "free",
+      "note": null
+    },
+    "shopping": null,
+    "safety": null,
+    "details": "The real cause of screen eye strain is sustained near-focus, not blue light, so brief distance breaks relieve it. This addresses acute strain rather than myopia progression, which is driven by outdoor time.",
+    "defaultPhase": 6,
+    "tags": []
+  },
+  {
+    "id": "kids-outdoor-time",
+    "title": "Kids' outdoor time",
+    "action": "Get children 2+ hours of outdoor time per day.",
+    "category": "environment",
+    "trigger": {
+      "anchor": "custom",
+      "note": "2+ hrs/day for kids"
+    },
+    "mechanism": "Bright outdoor light triggers retinal dopamine that inhibits the eye elongation behind myopia.",
+    "evidence": "observational",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "free",
+      "note": null
+    },
+    "shopping": null,
+    "safety": null,
+    "details": "Outdoor time (specifically being outdoors, not just reduced screen time) is the strongest modifiable factor for childhood myopia prevention, and the effect size is large. The retinal-dopamine mechanism was only recently understood.",
+    "defaultPhase": 8,
+    "tags": [
+      "new-parent"
+    ]
+  },
+  {
+    "id": "handwashing-technique",
+    "title": "Handwashing technique",
+    "action": "Wash hands with 20+ seconds of friction using any soap.",
+    "category": "hygiene",
+    "trigger": {
+      "anchor": "custom",
+      "note": "20+ seconds, any soap"
+    },
+    "mechanism": "Friction mechanically dislodges pathogens and soap surfactant dissolves viral lipid membranes.",
+    "evidence": "observational",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "free",
+      "note": null
+    },
+    "shopping": null,
+    "safety": null,
+    "details": "Technique beats soap type: antibacterial soap offers no added benefit (the FDA agrees). Most people wash for about 6 seconds; double or triple that. Friction is what does the work.",
+    "defaultPhase": 6,
+    "tags": []
+  },
+  {
+    "id": "nasal-saline-irrigation",
+    "title": "Nasal saline irrigation",
+    "action": "Rinse the nasal passages with isotonic saline, especially during cold and flu season.",
+    "category": "hygiene",
+    "trigger": {
+      "anchor": "asNeeded",
+      "note": "daily during cold/flu season or after crowds"
+    },
+    "mechanism": "Irrigation mechanically flushes pathogens before they establish in the nasal epithelium.",
+    "evidence": "observational",
+    "timeCostMinutes": 2,
+    "cost": {
+      "tier": "oneTimeUnder50",
+      "note": "~$15 for a kit, plus salt"
+    },
+    "shopping": {
+      "item": "Nasal saline rinse kit",
+      "criteria": "neti pot or squeeze bottle; use distilled or previously boiled water with isotonic saline",
+      "recurring": false,
+      "where": "pharmacy"
+    },
+    "safety": "Use only distilled, sterile, or previously boiled-and-cooled water, never straight tap water.",
+    "details": "Several studies during COVID found reduced infection rates with regular saline irrigation. Use it daily during cold and flu season or after exposure to crowds. Water safety matters: never use untreated tap water.",
+    "defaultPhase": 8,
+    "tags": []
+  },
+  {
+    "id": "saline-gargle",
+    "title": "Saltwater gargle",
+    "action": "Gargle 1/2 tsp salt in 8 oz warm water for 30-60 seconds during cold/flu season.",
+    "category": "hygiene",
+    "trigger": {
+      "anchor": "asNeeded",
+      "note": "during cold/flu season or after exposure"
+    },
+    "mechanism": "Hypertonic saline mechanically disrupts pathogens on the throat lining and creates a hostile osmotic environment.",
+    "evidence": "observational",
+    "timeCostMinutes": 1,
+    "cost": {
+      "tier": "free",
+      "note": null
+    },
+    "shopping": null,
+    "safety": null,
+    "details": "A 2020 study during COVID found regular saline gargling reduced viral load and symptom severity. It's nearly free with essentially zero side effects, useful daily during cold and flu season or after exposure to sick people.",
+    "defaultPhase": 7,
+    "tags": []
+  },
+  {
+    "id": "toilet-posture",
+    "title": "Toilet footstool",
+    "action": "Use a footstool to raise your knees above your hips, and don't linger.",
+    "category": "hygiene",
+    "trigger": {
+      "anchor": "custom",
+      "note": "each bathroom visit; keep it under 3-5 min"
+    },
+    "mechanism": "Elevating the knees straightens the anorectal angle, reducing straining, while prolonged sitting raises hemorrhoidal venous pressure.",
+    "evidence": "mechanistic",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "oneTimeUnder50",
+      "note": "~$25 once"
+    },
+    "shopping": {
+      "item": "Toilet footstool",
+      "criteria": "6-8 inch step that raises knees above hips",
+      "recurring": false,
+      "where": "online"
+    },
+    "safety": null,
+    "details": "A 6-8 inch step approximates a squat, straightening the anorectal angle to reduce straining and incomplete evacuation; hemorrhoids affect about half of adults over 50. Separately, don't sit and scroll: the seat ring creates a ring of venous pressure that, over time, promotes engorgement, so get in and out within 3-5 minutes.",
+    "defaultPhase": 8,
+    "tags": []
+  },
+  {
+    "id": "avoid-qtips",
+    "title": "No Q-tips in ears",
+    "action": "Don't put cotton swabs in your ear canal; clean only the outer ear.",
+    "category": "hygiene",
+    "trigger": {
+      "anchor": "custom",
+      "note": "clean outer ear only"
+    },
+    "mechanism": "Swabs compact earwax against the eardrum; the ear canal is self-cleaning and migrates wax outward on its own.",
+    "evidence": "mechanistic",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "free",
+      "note": null
+    },
+    "shopping": null,
+    "safety": null,
+    "details": "Pushing wax deeper causes hearing reduction, tinnitus, and potential infection. Clean only the outer ear; for genuine impaction, use softening drops or see a provider for irrigation.",
+    "defaultPhase": 6,
+    "tags": []
+  },
+  {
+    "id": "annual-bloodwork",
+    "title": "Annual bloodwork",
+    "action": "Get comprehensive bloodwork once a year as a baseline.",
+    "category": "metabolic",
+    "trigger": {
+      "anchor": "asNeeded",
+      "note": "once a year"
+    },
+    "mechanism": "You can't optimize what you don't measure; a yearly panel catches drift and deficiencies early.",
+    "evidence": "mechanistic",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "recurring",
+      "note": "~$50-200/yr"
+    },
+    "shopping": null,
+    "safety": null,
+    "details": "At minimum, track vitamin D, a metabolic panel, lipids, thyroid, and a CBC. A yearly baseline lets you calibrate supplement doses (for example, confirming vitamin D level) and spot trends rather than optimizing blind.",
+    "defaultPhase": 8,
+    "tags": []
+  },
+  {
+    "id": "nap-when-baby-naps",
+    "title": "Nap when your baby naps",
+    "action": "When your baby goes down for a nap and you have a window (even 20-45 minutes), lie down and try to sleep rather than using the time for chores or screens.",
+    "category": "sleep",
+    "trigger": {
+      "anchor": "custom",
+      "note": "Triggered by an irregular, baby-dictated event (nap start), not a fixed clock time. Cue this off a manual 'baby is down' log entry or a paired baby-tracking app, not a schedule."
+    },
+    "mechanism": "You cannot control when or how long you sleep during this phase, so the binding constraint becomes how quickly you fall asleep during the windows you do get. The evening/bedtime supplement stack (magnesium glycinate, glycine, phosphatidylserine) is specifically chosen to shorten sleep-onset latency — the difference between falling asleep in 5 minutes versus 20 minutes inside a 45-minute window is the difference between roughly 40 minutes of recovery sleep and 25.",
+    "evidence": "mechanistic",
+    "timeCostMinutes": 0,
+    "cost": {
+      "tier": "free",
+      "note": null
+    },
+    "shopping": null,
+    "safety": null,
+    "details": "This is a permission-and-prioritization habit, not a supplement or a timed routine — it exists to counteract the instinct to use every free minute on chores. Pair it with the bedtime supplement stack so that sleep onset is as fast as possible once you actually lie down. If a nap window opens outside your normal wake/bed anchors, the habit should still fire.",
+    "defaultPhase": 1,
+    "tags": [
+      "new-parent"
+    ]
+  }
+]
